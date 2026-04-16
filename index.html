@@ -60,24 +60,33 @@
 
   #bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-    display: flex; align-items: stretch;
-    height: 62px;
-    background: rgba(238,240,245,0.97);
-    backdrop-filter: blur(12px);
+    display: flex; align-items: center;
+    height: 60px;
+    background: #fff;
     border-top: 1px solid var(--border);
     padding-bottom: env(safe-area-inset-bottom);
   }
   .bottom-tab {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 3px; border: none; background: transparent; cursor: pointer;
-    color: var(--muted); transition: all 0.15s; padding: 6px 0;
+    gap: 4px; border: none; background: transparent; cursor: pointer;
+    color: var(--muted); transition: color 0.2s; padding: 6px 0;
     font-family: 'DM Sans', sans-serif;
+    position: relative; padding-top: 10px;
   }
+  .bottom-tab::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 0; height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: var(--bel);
+    transition: width 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .bottom-tab.active::before { width: 28px; }
   .bottom-tab.active { color: var(--bel); }
-  .bottom-tab.active .bottom-tab-icon { background: var(--bel-dim); border-radius: 12px; padding: 4px 12px; }
   .bottom-tab.active .bottom-tab-label { font-weight: 700; }
-  .bottom-tab-icon { font-size: 1.3rem; line-height: 1; padding: 4px 12px; transition: all 0.15s; }
-  .bottom-tab-label { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.02em; }
+  .bottom-tab-icon { display: flex; align-items: center; justify-content: center; line-height: 1; }
+  .bottom-tab-label { font-size: 0.62rem; font-weight: 500; letter-spacing: 0.02em; }
 
   /* ── SIDEBAR ── */
   #sidebar-overlay {
@@ -1283,19 +1292,20 @@
 <!-- ══ BARRE DE NAVIGATION BAS ══ -->
 <div id="bottom-nav">
   <button class="bottom-tab active" id="tab-home" onclick="showPage('home')" ontouchend="event.preventDefault();showPage('home')">
-    <span class="bottom-tab-icon">🏠</span>
+    <span class="bottom-tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
     <span class="bottom-tab-label">Accueil</span>
   </button>
   <button class="bottom-tab" id="tab-global" onclick="showPage('global')" ontouchend="event.preventDefault();showPage('global')">
-    <span class="bottom-tab-icon">🗓️</span>
+    <span class="bottom-tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
     <span class="bottom-tab-label">Global</span>
   </button>
-  <button class="bottom-tab" id="tab-add" onclick="openQuickActionsModal()" ontouchend="event.preventDefault();openQuickActionsModal()">
-    <span class="bottom-tab-icon" style="font-size:1.5rem;line-height:1">＋</span>
-    <span class="bottom-tab-label">Ajouter</span>
+  <button class="bottom-tab" id="tab-add" onclick="openQuickActionsModal()" ontouchend="event.preventDefault();openQuickActionsModal()" style="color:#fff">
+    <span class="bottom-tab-icon" style="width:40px;height:40px;border-radius:50%;background:var(--bel);box-shadow:0 3px 10px rgba(26,111,212,0.35);display:flex;align-items:center;justify-content:center;margin-bottom:2px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </span>
   </button>
   <button class="bottom-tab" id="tab-menu" onclick="openSidebar()" ontouchend="event.preventDefault();openSidebar()">
-    <span class="bottom-tab-icon" style="font-size:1rem;letter-spacing:1px">≡</span>
+    <span class="bottom-tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></span>
     <span class="bottom-tab-label">Menu</span>
   </button>
 </div>
@@ -1311,13 +1321,13 @@
   <div class="sidebar-section">
     <div class="sidebar-section-label">Plannings</div>
     <button class="sidebar-item" onclick="closeSidebar();showDedicatedPage('bel')">
-      <span class="sidebar-item-icon">🔵</span> Belharra
+      <span class="sidebar-item-icon" style="width:18px;height:18px;border-radius:50%;display:inline-block;flex-shrink:0;background:var(--bel)"></span> Belharra
     </button>
     <button class="sidebar-item" onclick="closeSidebar();showDedicatedPage('sp')">
-      <span class="sidebar-item-icon">🟠</span> St Palais
+      <span class="sidebar-item-icon" style="width:18px;height:18px;border-radius:50%;display:inline-block;flex-shrink:0;background:#f97316"></span> St Palais
     </button>
     <button class="sidebar-item" onclick="closeSidebar();showDedicatedPage('gardes')">
-      <span class="sidebar-item-icon">🚨</span> Gardes médicales
+      <span class="sidebar-item-icon" style="width:18px;height:18px;border-radius:50%;display:inline-block;flex-shrink:0;background:var(--gardes)"></span> Gardes médicales
     </button>
     <button class="sidebar-item" onclick="closeSidebar();showDedicatedPage('vac')">
       <span class="sidebar-item-icon">🌴</span> Vacances
@@ -1409,7 +1419,7 @@
       <div id="gestion-sp-count" style="font-size:0.72rem;color:var(--muted);margin-top:2px"></div>
     </div>
     <div onclick="showDedicatedPage('gardes')" style="padding:16px;border-radius:14px;border:1px solid rgba(255,0,0,0.3);background:var(--surface2);cursor:pointer">
-      <div style="font-size:1.1rem;margin-bottom:6px">🚨</div>
+      <div style="width:12px;height:12px;border-radius:50%;background:var(--gardes);margin:0 auto 6px"></div>
       <div style="font-weight:700;font-size:0.88rem;color:var(--gardes)">Gardes</div>
       <div id="gestion-gardes-count" style="font-size:0.72rem;color:var(--muted);margin-top:2px"></div>
     </div>
@@ -1929,7 +1939,7 @@
 </div>
 
 <div id="page-gardes-dedicated" class="page dedicated-page">
-  <div class="dedicated-header"><div class="dedicated-title">🚨 Gardes médicales</div></div>
+  <div class="dedicated-header"><div class="dedicated-title"><span style="width:10px;height:10px;border-radius:50%;background:var(--gardes);display:inline-block;margin-right:6px;vertical-align:middle"></span>Gardes médicales</div></div>
   <div id="ded-gardes-content"></div>
   <div class="cal-nav" style="margin-bottom:12px">
     <button class="cal-nav-btn" onclick="changeGardesMonth(-1)">‹</button>
@@ -2514,13 +2524,13 @@ var _addSheetType = null;
 var _addSheetForcePending = null;
 
 var ADD_TYPES = [
-  { id:'bel',    label:'Belharra',        icon:'🔵', color:'var(--bel)',    desc:'Jour travaillé à Belharra' },
-  { id:'sp',     label:'St Palais',       icon:'🟠', color:'var(--sp)',     desc:'Jour travaillé à St Palais' },
-  { id:'garde',  label:'Garde médicale',  icon:'🚨', color:'var(--gardes)', desc:'Garde BEL ou SP' },
-  { id:'nounou', label:'Congé Nounou',    icon:'🍼', color:'var(--nounou)', desc:'Attribution garde Adèle' },
-  { id:'vac',    label:'Vacances',        icon:'🌴', color:'var(--vac)',    desc:'Période de vacances' },
-  { id:'invites',label:'Invités',         icon:'🏠', color:'var(--invites)',desc:'Visite à la maison' },
-  { id:'memo',   label:'Mémo',            icon:'📌', color:'var(--memo)',   desc:'Dîner, rendez-vous…' },
+  { id:'bel',    label:'Belharra',        icon:'dot', color:'var(--bel)',     dotColor:'var(--bel)',    desc:'Jour travaillé à Belharra' },
+  { id:'sp',     label:'St Palais',       icon:'dot', color:'var(--sp)',      dotColor:'#f97316',       desc:'Jour travaillé à St Palais' },
+  { id:'garde',  label:'Garde médicale',  icon:'dot', color:'var(--gardes)',  dotColor:'var(--gardes)', desc:'Garde BEL ou SP' },
+  { id:'nounou', label:'Congé Nounou',    icon:'🍼',  color:'var(--nounou)',  dotColor:null,            desc:'Attribution garde Adèle' },
+  { id:'vac',    label:'Vacances',        icon:'🌴',  color:'var(--vac)',     dotColor:null,            desc:'Période de vacances' },
+  { id:'invites',label:'Invités',         icon:'🏠',  color:'var(--invites)', dotColor:null,           desc:'Visite à la maison' },
+  { id:'memo',   label:'Mémo',            icon:'📌',  color:'var(--memo)',    dotColor:null,            desc:'Dîner, rendez-vous…' },
 ];
 
 function openQuickActionsModal() {
@@ -2530,8 +2540,11 @@ function openQuickActionsModal() {
   ADD_TYPES.forEach(function(t) {
     var btn = document.createElement('button');
     btn.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-family:DM Sans,sans-serif;width:100%;text-align:left;transition:background 0.15s';
+    var iconHtml = t.icon === 'dot'
+      ? '<span style="width:22px;height:22px;border-radius:50%;background:' + t.dotColor + ';flex-shrink:0;display:inline-block"></span>'
+      : '<span style="font-size:1.3rem;flex-shrink:0">' + t.icon + '</span>';
     btn.innerHTML =
-      '<span style="font-size:1.3rem;flex-shrink:0">' + t.icon + '</span>' +
+      iconHtml +
       '<div>' +
         '<div style="font-weight:700;font-size:0.9rem;color:' + t.color + '">' + t.label + '</div>' +
         '<div style="font-size:0.72rem;color:var(--muted);margin-top:1px">' + t.desc + '</div>' +
@@ -3228,14 +3241,15 @@ function renderHomeDashboard() {
   addSimpleTap('sp-dispos-btn',   function(){ openSpDetailSheet('dispos',   contractYear); });
   addSimpleTap('sp-open-btn', function(){ showDedicatedPage('sp'); });
 
-  // Calcul dispos en différé (peut être lent)
+  // Calcul dispos en différé (jusqu'au 31/12)
   setTimeout(function() {
     var totalDispos = 0;
     var now = new Date(today);
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < 12; i++) {
       var mm = now.getMonth() + i;
       var yy = now.getFullYear() + Math.floor(mm / 12);
       mm = mm % 12;
+      if (yy > today.getFullYear()) break; // stop after Dec 31
       totalDispos += getSpDispos(yy, mm).length;
     }
     var el = document.getElementById('sp-dispos-count');
@@ -3250,6 +3264,19 @@ function openSpDetailSheet(mode, contractYear) {
   var body     = document.getElementById('day-menu-body');
 
   dateEl.textContent = mode === 'realized' ? 'Heures réalisées' : mode === 'planned' ? 'Heures programmées' : 'Dispos St Palais';
+
+  // Add subtitle for dispos mode
+  var existingSubtitle = document.getElementById('day-menu-subtitle');
+  if (existingSubtitle) existingSubtitle.remove();
+  if (mode === 'dispos') {
+    var subtitle = document.createElement('div');
+    subtitle.id = 'day-menu-subtitle';
+    subtitle.textContent = 'jusqu\'au 31/12';
+    subtitle.style.cssText = 'font-size:0.68rem;color:var(--muted);font-weight:400;margin-top:1px';
+    dateEl.style.display = 'flex';
+    dateEl.style.flexDirection = 'column';
+    dateEl.appendChild(subtitle);
+  }
   body.innerHTML = '';
 
   // Add copy button to header for dispos mode
@@ -3266,7 +3293,7 @@ function openSpDetailSheet(mode, contractYear) {
       var yy2 = now2.getFullYear() + Math.floor(mm2 / 12);
       mm2 = mm2 % 12;
       if ((yy2 + '-12-31') < (today.getFullYear() + '-01-01')) continue; // skip past years
-      getSpDispos(yy2, mm2).filter(function(d){ return dateKey(d) <= contractEndKey; }).forEach(function(d) { disposList.push(d); });
+      getSpDispos(yy2, mm2).forEach(function(d) { disposList.push(d); });
     }
 
     if (disposList.length === 0) {
@@ -3289,7 +3316,7 @@ function openSpDetailSheet(mode, contractYear) {
       // Group by month
       var byMonth2 = {};
       disposList.forEach(function(d) {
-        var mk = d.getFullYear() + '-' + d.getMonth();
+        var mk = d.getFullYear() + '-' + String(d.getMonth()).padStart(2,'0');
         if (!byMonth2[mk]) byMonth2[mk] = { label: MONTHS_FR[d.getMonth()] + ' ' + d.getFullYear(), y: d.getFullYear(), m: d.getMonth(), days: [] };
         byMonth2[mk].days.push(d);
       });
@@ -3496,6 +3523,9 @@ function renderHomeMonthEvents() {
   sec.textContent = 'Prochainement';
   el.appendChild(sec);
 
+  // Noms de catégorie
+  var TYPE_LABELS = { invite: 'À la maison', vac: 'Vacances', nounou: 'Congé Nounou', memo: 'Mémo' };
+
   // Group by month
   var byMonth = {};
   chips.forEach(function(chip) {
@@ -3515,34 +3545,35 @@ function renderHomeMonthEvents() {
 
     group.chips.forEach(function(chip) {
       var row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--surface2)';
-
-      var icon = document.createElement('span');
-      icon.style.cssText = 'font-size:0.95rem;flex-shrink:0';
-      icon.textContent = chip.icon;
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--surface2)';
 
       var info = document.createElement('div');
       info.style.cssText = 'flex:1;min-width:0';
 
-      var name = document.createElement('span');
-      name.style.cssText = 'font-size:0.88rem;font-weight:600;color:var(--text)';
-      name.textContent = chip.label;
+      // Catégorie en gras
+      var cat = document.createElement('span');
+      cat.style.cssText = 'font-size:0.85rem;font-weight:700;color:var(--text)';
+      cat.textContent = TYPE_LABELS[chip.type] || chip.label;
 
-      var dateSpan = document.createElement('span');
-      dateSpan.style.cssText = 'font-size:0.75rem;color:' + chip.color + ';font-weight:500;margin-left:8px';
-      dateSpan.textContent = chip.date;
-      name.appendChild(dateSpan);
-      info.appendChild(name);
-
-      if (chip.sublabel) {
-        var sub = document.createElement('div');
-        sub.style.cssText = 'font-size:0.72rem;color:var(--muted);margin-top:1px';
-        sub.textContent = '(' + chip.sublabel + ')';
-        info.appendChild(sub);
+      // Nom (sublabel ou label pour invités/vac) en normal
+      var nameStr = chip.type === 'invite' || chip.type === 'vac' ? chip.label :
+                    chip.type === 'nounou' ? chip.sublabel || '' :
+                    chip.type === 'memo' ? chip.label : '';
+      if (nameStr && nameStr !== (TYPE_LABELS[chip.type] || '')) {
+        var nameEl = document.createElement('span');
+        nameEl.style.cssText = 'font-size:0.85rem;font-weight:400;color:var(--text);margin-left:5px';
+        nameEl.textContent = '– ' + nameStr;
+        cat.appendChild(nameEl);
       }
+      info.appendChild(cat);
 
-      row.appendChild(icon);
+      // Dates à droite
+      var dateEl2 = document.createElement('span');
+      dateEl2.style.cssText = 'font-size:0.75rem;color:var(--muted);font-weight:500;white-space:nowrap;flex-shrink:0;margin-left:auto;padding-left:8px;text-align:right';
+      dateEl2.textContent = chip.date;
+
       row.appendChild(info);
+      row.appendChild(dateEl2);
 
       // Boutons action
       (function(chip) {
@@ -4400,28 +4431,30 @@ function renderGlobalInvitesList(y, m) {
 
   if (invitesThisMonth.length === 0) return;
 
-  var hdr = document.createElement('div');
-  hdr.style.cssText = 'font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);padding:10px 0 4px;border-bottom:1px solid var(--border);margin-bottom:2px';
-  hdr.textContent = 'À la maison';
-  el.appendChild(hdr);
-
   invitesThisMonth.forEach(function(ev) {
     var s = parseKey(ev.start), e = parseKey(ev.end);
     var row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--surface2)';
-    var icon = document.createElement('span'); icon.textContent = '🏠'; icon.style.fontSize = '0.95rem';
-    var info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0';
-    var name = document.createElement('span');
-    name.style.cssText = 'font-size:0.88rem;font-weight:600;color:var(--text)';
-    name.textContent = ev.name || 'Invités';
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--surface2)';
+    var dot = document.createElement('span');
+    dot.style.cssText = 'width:7px;height:7px;border-radius:50%;background:var(--invites);flex-shrink:0;display:inline-block';
+    var info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:0';
+    var cat = document.createElement('span');
+    cat.style.cssText = 'font-size:0.85rem;font-weight:700;color:var(--text)';
+    cat.textContent = 'À la maison';
+    if (ev.name) {
+      var nameEl = document.createElement('span');
+      nameEl.style.cssText = 'font-size:0.85rem;font-weight:400;color:var(--text);margin-left:5px';
+      nameEl.textContent = '– ' + ev.name;
+      cat.appendChild(nameEl);
+    }
+    info.appendChild(cat);
     var dateStr = s.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
     if (ev.start !== ev.end) dateStr += ' → ' + e.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
     var dates = document.createElement('span');
-    dates.style.cssText = 'font-size:0.75rem;color:var(--invites);font-weight:500;margin-left:8px';
+    dates.style.cssText = 'font-size:0.75rem;color:var(--muted);font-weight:500;white-space:nowrap;flex-shrink:0;margin-left:auto;padding-left:8px';
     dates.textContent = dateStr;
-    name.appendChild(dates);
-    info.appendChild(name);
-    row.appendChild(icon); row.appendChild(info);
+    row.appendChild(dot); row.appendChild(info); row.appendChild(dates);
     el.appendChild(row);
   });
 }
@@ -4433,7 +4466,6 @@ function renderGlobalNounouList(y, m) {
   var firstDay = new Date(y, m, 1);
   var lastDay  = new Date(y, m+1, 0);
 
-  // Sort ascending for grouping, then reverse for display
   var events = (state.nounou && state.nounou.events || []).filter(function(ev) {
     var s = parseKey(ev.start);
     return s >= firstDay && s <= lastDay;
@@ -4441,7 +4473,6 @@ function renderGlobalNounouList(y, m) {
 
   if (events.length === 0) return;
 
-  // Group consecutive days with same gardien into periods
   var grouped = [];
   events.forEach(function(ev) {
     var g = GARDIENS.find(function(x){ return x.id === ev.gardien; });
@@ -4455,32 +4486,28 @@ function renderGlobalNounouList(y, m) {
     grouped.push({ label: label, startDate: ev.start, endDate: ev.start });
   });
 
-  var hdr = document.createElement('div');
-  hdr.style.cssText = 'font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);padding:10px 0 4px;border-bottom:1px solid var(--border);margin-bottom:2px';
-  hdr.textContent = 'Planning Nounou';
-  el.appendChild(hdr);
-
   grouped.forEach(function(p) {
     var s = parseKey(p.startDate), e = parseKey(p.endDate);
     var row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--surface2)';
-    var icon = document.createElement('span'); icon.textContent = '🍼'; icon.style.fontSize = '0.95rem';
-    var info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0';
-    var name = document.createElement('span');
-    name.style.cssText = 'font-size:0.88rem;font-weight:600;color:var(--text)';
-    name.textContent = 'Congé nounou';
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--surface2)';
+    var dot = document.createElement('span');
+    dot.style.cssText = 'width:7px;height:7px;border-radius:50%;background:var(--nounou);flex-shrink:0;display:inline-block';
+    var info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:0';
+    var cat = document.createElement('span');
+    cat.style.cssText = 'font-size:0.85rem;font-weight:700;color:var(--text)';
+    cat.textContent = 'Congé Nounou';
+    var nameEl = document.createElement('span');
+    nameEl.style.cssText = 'font-size:0.85rem;font-weight:400;color:var(--text);margin-left:5px';
+    nameEl.textContent = '– ' + p.label;
+    cat.appendChild(nameEl);
+    info.appendChild(cat);
     var dateStr = s.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
     if (p.startDate !== p.endDate) dateStr += ' → ' + e.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
     var dates = document.createElement('span');
-    dates.style.cssText = 'font-size:0.75rem;color:var(--nounou);font-weight:500;margin-left:8px';
+    dates.style.cssText = 'font-size:0.75rem;color:var(--muted);font-weight:500;white-space:nowrap;flex-shrink:0;margin-left:auto;padding-left:8px';
     dates.textContent = dateStr;
-    name.appendChild(dates);
-    info.appendChild(name);
-    var sub = document.createElement('div');
-    sub.style.cssText = 'font-size:0.72rem;color:var(--muted);margin-top:1px';
-    sub.textContent = '(' + p.label + ')';
-    info.appendChild(sub);
-    row.appendChild(icon); row.appendChild(info);
+    row.appendChild(dot); row.appendChild(info); row.appendChild(dates);
     el.appendChild(row);
   });
 }
@@ -5748,7 +5775,12 @@ function openDaySummary(key, info) {
       chip.style.background = dim;
       chip.style.border = '1px solid ' + color;
       chip.style.marginBottom = '2px';
-      var ic = document.createElement('span'); ic.textContent = icon; ic.style.fontSize = '1rem';
+      var ic = document.createElement('span');
+      if (icon === '●') {
+        ic.style.cssText = 'width:9px;height:9px;border-radius:50%;background:' + color + ';flex-shrink:0;display:inline-block';
+      } else {
+        ic.textContent = icon; ic.style.fontSize = '1rem';
+      }
       var lbl = document.createElement('div');
       lbl.style.flex = '1';
       lbl.style.fontSize = '0.85rem';
@@ -5916,7 +5948,7 @@ function openDaySummary(key, info) {
       var isGardeBel = (state.gardes||[]).some(function(g){ return key>=g.start&&key<=g.end&&g.lieu==='bel'; });
       // Affiche "Garde Belharra" OU "Belharra" — jamais les deux
       eventsWrap.appendChild(makeEventChip(
-        isGardeBel ? '🚨' : '🔵',
+        isGardeBel ? '●' : '●',
         isGardeBel ? 'Garde Belharra' : 'Belharra',
         isGardeBel ? 'var(--gardes)' : 'var(--bel)',
         isGardeBel ? 'rgba(204,0,0,0.12)' : 'var(--bel-dim)',
@@ -5933,7 +5965,7 @@ function openDaySummary(key, info) {
       var isGardeSp = (state.gardes||[]).some(function(g){ return key>=g.start&&key<=g.end&&g.lieu==='sp'; });
       // Affiche "Garde St Palais" OU "St Palais Xh" — jamais les deux
       eventsWrap.appendChild(makeEventChip(
-        isGardeSp ? '🚨' : '🟠',
+        isGardeSp ? '●' : '●',
         isGardeSp ? 'Garde St Palais' : ('St Palais' + (spObj ? ' · ' + spObj.hours + 'h' : '')),
         isGardeSp ? 'var(--gardes)' : 'var(--sp)',
         isGardeSp ? 'rgba(204,0,0,0.12)' : 'var(--sp-dim)',
@@ -5948,7 +5980,7 @@ function openDaySummary(key, info) {
     // Garde standalone uniquement si pas déjà couverte par BEL ou SP
     if (isGardeMed && !isBelWork && !isSpWork) {
       var g = (state.gardes||[]).find(function(g){ return key>=g.start&&key<=g.end; });
-      eventsWrap.appendChild(makeEventChip('🚨', 'Garde ' + (g&&g.lieu?g.lieu.toUpperCase():''), 'var(--gardes)', 'rgba(204,0,0,0.12)', function() {
+      eventsWrap.appendChild(makeEventChip('●', 'Garde ' + (g&&g.lieu?g.lieu.toUpperCase():''), 'var(--gardes)', 'rgba(204,0,0,0.12)', function() {
         if (g) state.gardes = (state.gardes||[]).filter(function(x){ return x.id!==g.id; });
         saveState(); closeDayMenu(); renderGlobal();
       }));
@@ -6057,7 +6089,10 @@ function openDaySummary(key, info) {
     btn.style.fontWeight = '600';
     btn.style.cursor = 'pointer';
     btn.style.webkitTapHighlightColor = 'transparent';
-    btn.innerHTML = '<span>' + icon + '</span>' + label;
+    var iconHtml = icon === '●'
+      ? '<span style="width:8px;height:8px;border-radius:50%;background:' + color + ';display:inline-block;flex-shrink:0"></span>'
+      : '<span>' + icon + '</span>';
+    btn.innerHTML = iconHtml + label;
     btn.addEventListener('click', fn);
     btn.addEventListener('touchend', function(e){ e.preventDefault(); fn(); });
     return btn;
@@ -6087,7 +6122,7 @@ function openDaySummary(key, info) {
     }));
   }
   if (!isGardeMed) {
-    addWrap.appendChild(makeAddBtn('🚨', 'Garde', 'var(--gardes)', function() {
+    addWrap.appendChild(makeAddBtn('●', 'Garde', 'var(--gardes)', function() {
       closeDayMenu(); openGardeModal(key);
     }));
   }
@@ -6197,6 +6232,10 @@ function closeDayMenu() {
   backdrop.style.display = 'none';
   var copyBtn = document.getElementById('day-menu-copy-btn');
   if (copyBtn) copyBtn.remove();
+  var subtitle = document.getElementById('day-menu-subtitle');
+  if (subtitle) { subtitle.remove(); }
+  var dateEl2 = document.getElementById('day-menu-date');
+  if (dateEl2) { dateEl2.style.display = ''; dateEl2.style.flexDirection = ''; }
 }
 
 // Swipe-down pour fermer le bottom sheet
@@ -6637,7 +6676,7 @@ function renderGardes() {
     var row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--surface2)' + (isPast ? ';opacity:0.5' : '');
 
-    var icon = document.createElement('span'); icon.textContent = '🚨'; icon.style.fontSize = '0.95rem';
+    var icon = document.createElement('span'); icon.style.cssText = 'width:7px;height:7px;border-radius:50%;background:var(--gardes);flex-shrink:0;display:inline-block';
 
     var info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0';
     var name = document.createElement('span');
@@ -7752,15 +7791,10 @@ function getSpDispos(y, m) {
     var isNounouEd  = isNounouEdouard ? isNounouEdouard(key) : false;
     var isGardeMed  = (state.gardes || []).some(function(g){ return key >= g.start && key <= g.end; });
 
-    // Weekend bloqué par garde ou Belharra
+    // Weekend bloqué uniquement par garde médicale (astreinte)
     var isWeekendBlocked = false;
     if (isWeekend(cur)) {
       var allBlockedKeys = new Set();
-      (state.bel.work || []).forEach(function(k) {
-        var d2 = parseKey(k); var dow = d2.getDay();
-        if (dow === 6) { var s = new Date(d2); s.setDate(d2.getDate()+1); allBlockedKeys.add(dateKey(s)); }
-        else if (dow === 0) { var s2 = new Date(d2); s2.setDate(d2.getDate()-1); allBlockedKeys.add(dateKey(s2)); }
-      });
       (state.gardes || []).forEach(function(g) {
         var cur2 = parseKey(g.start); var end2 = parseKey(g.end);
         while (cur2 <= end2) {
@@ -7773,7 +7807,7 @@ function getSpDispos(y, m) {
       isWeekendBlocked = allBlockedKeys.has(key);
     }
 
-    var isDispo = !isWork && !isBelWork && !isVac && !isNounouEd && !isGardeMed && !isWeekendBlocked && key >= todayKey && key <= (y + '-12-31');
+    var isDispo = !isWork && !isBelWork && !isVac && !isNounouEd && !isGardeMed && !isWeekendBlocked && key >= todayKey;
     if (isDispo) dispos.push(new Date(cur));
     cur.setDate(cur.getDate() + 1);
   }
@@ -8589,10 +8623,11 @@ function renderDedSp() {
   setTimeout(function() {
     var total = 0;
     var now = new Date(today);
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < 12; i++) {
       var mm = now.getMonth() + i;
       var yy = now.getFullYear() + Math.floor(mm / 12);
       mm = mm % 12;
+      if (yy > today.getFullYear()) break;
       total += getSpDispos(yy, mm).length;
     }
     var cnt = document.getElementById('ded-sp-dispos-count');
