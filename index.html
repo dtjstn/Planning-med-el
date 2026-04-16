@@ -5893,29 +5893,36 @@ function openDaySummary(key, info) {
 
         if (f.type === 'time-hhmm') {
           var hhmm = document.createElement('div');
-          hhmm.style.cssText = 'display:flex;align-items:center;gap:8px';
-          var hh = document.createElement('input');
-          hh.type = 'number'; hh.min = '0'; hh.max = '23'; hh.placeholder = 'HH';
-          hh.value = f.value ? f.value.split(':')[0] : '';
-          hh.style.cssText = 'width:72px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:1.1rem;font-weight:700;text-align:center;outline:none';
-          hh.onfocus = function(){ var el=this; el.style.borderColor = cfg.color||'var(--accent)'; setTimeout(function(){ el.select(); }, 50); };
-          hh.onblur  = function(){ this.style.borderColor = 'var(--border)'; };
+          hhmm.style.cssText = 'display:flex;align-items:center;gap:6px';
+          var sel_h = document.createElement('select');
+          for (var hi = 0; hi < 24; hi++) {
+            var opt = document.createElement('option');
+            opt.value = String(hi).padStart(2,'0');
+            opt.textContent = String(hi).padStart(2,'0');
+            if (f.value && f.value.split(':')[0] === String(hi).padStart(2,'0')) opt.selected = true;
+            sel_h.appendChild(opt);
+          }
+          sel_h.style.cssText = 'flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:0.9rem;font-weight:600;outline:none;cursor:pointer';
           var colon = document.createElement('span');
           colon.textContent = ':';
-          colon.style.cssText = 'font-size:1.3rem;font-weight:700;color:var(--text)';
-          var mm = document.createElement('input');
-          mm.type = 'number'; mm.min = '0'; mm.max = '59'; mm.placeholder = 'MM';
-          mm.value = f.value ? (f.value.split(':')[1]||'') : '';
-          mm.style.cssText = 'width:72px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:1.1rem;font-weight:700;text-align:center;outline:none';
-          mm.onfocus = function(){ var el=this; el.style.borderColor = cfg.color||'var(--accent)'; setTimeout(function(){ el.select(); }, 50); };
-          mm.onblur  = function(){ this.style.borderColor = 'var(--border)'; };
-          hhmm.appendChild(hh); hhmm.appendChild(colon); hhmm.appendChild(mm);
+          colon.style.cssText = 'font-size:1.1rem;font-weight:700;color:var(--muted)';
+          var sel_m = document.createElement('select');
+          [0,15,30,45].forEach(function(mv) {
+            var opt2 = document.createElement('option');
+            opt2.value = String(mv).padStart(2,'0');
+            opt2.textContent = String(mv).padStart(2,'0');
+            if (f.value) {
+              var cur_m = parseInt(f.value.split(':')[1]||'0');
+              if (Math.round(cur_m/15)*15%60 === mv) opt2.selected = true;
+            }
+            sel_m.appendChild(opt2);
+          });
+          sel_m.style.cssText = 'flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:0.9rem;font-weight:600;outline:none;cursor:pointer';
+          hhmm.appendChild(sel_h); hhmm.appendChild(colon); hhmm.appendChild(sel_m);
           g.appendChild(hhmm);
           wrap.appendChild(g);
           fields.push({ id: f.id, el: null, getVal: function() {
-            var h = hh.value.trim(), m = mm.value.trim();
-            if (!h && !m) return '';
-            return String(parseInt(h)||0).padStart(2,'0') + ':' + String(parseInt(m)||0).padStart(2,'0');
+            return sel_h.value + ':' + sel_m.value;
           }});
           return;
         }
@@ -8348,7 +8355,7 @@ function openFormModal(type) {
 
   var cfg = {
     invites: { title:'🏠 Ajouter des invités',         color:'var(--invites)', fields:[{id:'fm-inv-name',label:'Qui vient ?',type:'text',ph:'Ex : Maman, Léa…'},{id:'fm-inv-start',label:'Arrivée',type:'date'},{id:'fm-inv-end',label:'Départ',type:'date'}] },
-    memo:    { title:'📌 Ajouter un mémo',             color:'var(--memo)',    fields:[{id:'fm-memo-name',label:'Titre',type:'text',ph:'Ex : Dîner chez Paul…'},{id:'fm-memo-date',label:'Date',type:'date'},{id:'fm-memo-time',label:'Heure (optionnel)',type:'time'}] },
+    memo:    { title:'📌 Ajouter un mémo',             color:'var(--memo)',    fields:[{id:'fm-memo-name',label:'Titre',type:'text',ph:'Ex : Dîner chez Paul…'},{id:'fm-memo-date',label:'Date',type:'date'},{id:'fm-memo-time',label:'Heure (optionnel)',type:'time-hhmm'}] },
     nounou:  { title:'🍼 Ajouter une période nounou',  color:'var(--nounou)',  fields:[{id:'fm-nou-start',label:'Du',type:'date'},{id:'fm-nou-end',label:'Au',type:'date'}] }
   }[type];
   if (!cfg) return;
@@ -8444,7 +8451,9 @@ function openFormModal(type) {
     } else if (type === 'memo') {
       var name = document.getElementById('fm-memo-name').value.trim();
       var date = document.getElementById('fm-memo-date').value;
-      var time = document.getElementById('fm-memo-time').value || '';
+      var fmH = box.querySelector('select[id$="-time-h"]') || box.querySelector('select');
+      var fmM = box.querySelector('select[id$="-time-m"]');
+      var time = (fmH && fmM) ? fmH.value + ':' + fmM.value : '';
       if (!name) { if(errDiv){errDiv.textContent='Titre requis';errDiv.style.display='block';} return; }
       if (!date) { if(errDiv){errDiv.textContent='Date requise';errDiv.style.display='block';} return; }
       if (!state.memos) state.memos = [];
