@@ -2166,6 +2166,9 @@ function showPage(name) {
   var tabEl = document.getElementById('tab-' + tabName);
   if (tabEl) tabEl.classList.add('active');
 
+  // Save current page
+  try { localStorage.setItem('planmed_page', name); } catch(e) {}
+
   var fab = document.getElementById('fab-add');
   if (fab) fab.classList.toggle('visible', name === 'global');
 
@@ -8454,7 +8457,17 @@ if (!state.view.global) state.view.global = { y: today.getFullYear(), m: today.g
 if (state.view.global.year !== undefined) state.view.global = { y: state.view.global.year, m: today.getMonth() };
 
 try {
-  showPage('home');
+  var lastPage = 'home';
+  try { lastPage = localStorage.getItem('planmed_page') || 'home'; } catch(e) {}
+  // Only restore simple pages, not dedicated ones (need render)
+  if (['home','global','autres'].indexOf(lastPage) !== -1) {
+    showPage(lastPage);
+  } else if (lastPage && lastPage.indexOf('-dedicated') !== -1) {
+    var dedId = lastPage.replace('-dedicated','');
+    showDedicatedPage(dedId);
+  } else {
+    showPage('home');
+  }
   renderHomeRecap();
   var loadingEl = document.getElementById('loading-indicator');
   if (loadingEl) loadingEl.style.display = 'none';
