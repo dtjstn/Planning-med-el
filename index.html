@@ -1913,7 +1913,7 @@
         <div id="sp-dispo-summary-ded" style="font-size:0.7rem;color:var(--muted)"></div>
       </div></div>
       <div style="display:flex;align-items:center;gap:8px">
-        <button id="sp-dispo-copy-btn-ded" onclick="event.stopPropagation();copySpDispos()" style="display:none;padding:5px 10px;border-radius:7px;border:1px solid rgba(22,163,74,0.4);background:rgba(22,163,74,0.1);color:var(--dispo);font-family:'DM Sans',sans-serif;font-size:0.72rem;font-weight:700;cursor:pointer">📤 Copier</button>
+        <button id="sp-dispo-copy-btn-ded" onclick="event.stopPropagation();copySpDispos()" style="display:none;padding:6px 8px;border-radius:7px;border:1px solid rgba(22,163,74,0.4);background:rgba(22,163,74,0.1);color:var(--dispo);cursor:pointer;display:flex;align-items:center;-webkit-tap-highlight-color:transparent"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
         <span id="sp-dispo-chevron-ded" style="color:var(--muted);font-size:0.82rem;transition:transform 0.2s">▼</span>
       </div>
     </div>
@@ -3252,23 +3252,37 @@ function openSpDetailSheet(mode, contractYear) {
   dateEl.textContent = mode === 'realized' ? 'Heures réalisées' : mode === 'planned' ? 'Heures programmées' : 'Dispos St Palais';
   body.innerHTML = '';
 
+  // Add copy button to header for dispos mode
+  var existingCopyHdr = document.getElementById('day-menu-copy-btn');
+  if (existingCopyHdr) existingCopyHdr.remove();
+
   if (mode === 'dispos') {
-    // Collect upcoming dispo days — next 6 months
+    // Collect until 31/12 of current year
     var disposList = [];
+    var contractEndKey = today.getFullYear() + '-12-31';
     var now2 = new Date(today);
-    for (var i2 = 0; i2 < 6; i2++) {
+    for (var i2 = 0; i2 < 12; i2++) {
       var mm2 = now2.getMonth() + i2;
       var yy2 = now2.getFullYear() + Math.floor(mm2 / 12);
       mm2 = mm2 % 12;
-      getSpDispos(yy2, mm2).forEach(function(d) { disposList.push(d); });
+      if ((yy2 + '-12-31') < (today.getFullYear() + '-01-01')) continue; // skip past years
+      getSpDispos(yy2, mm2).filter(function(d){ return dateKey(d) <= contractEndKey; }).forEach(function(d) { disposList.push(d); });
     }
 
     if (disposList.length === 0) {
       var empty2 = document.createElement('div');
       empty2.style.cssText = 'padding:24px;text-align:center;color:var(--muted);font-size:0.88rem';
-      empty2.textContent = 'Aucune dispo dans les 6 prochains mois.';
+      empty2.textContent = 'Aucune dispo jusqu\'au 31/12.';
       body.appendChild(empty2);
     } else {
+      // Copy button in header
+      var hdrCopyBtn = document.createElement('button');
+      hdrCopyBtn.id = 'day-menu-copy-btn';
+      hdrCopyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+      hdrCopyBtn.style.cssText = 'position:absolute;right:48px;top:12px;border:none;background:none;color:var(--muted);cursor:pointer;padding:6px;display:flex;align-items:center;-webkit-tap-highlight-color:transparent';
+      hdrCopyBtn.onclick = function() { copySpDisposAll(disposList, hdrCopyBtn); };
+      menu.querySelector('.day-menu-header').appendChild(hdrCopyBtn);
+
       var wrap2 = document.createElement('div');
       wrap2.style.cssText = 'padding:8px 14px 16px;display:flex;flex-direction:column;gap:4px';
 
@@ -3276,14 +3290,14 @@ function openSpDetailSheet(mode, contractYear) {
       var byMonth2 = {};
       disposList.forEach(function(d) {
         var mk = d.getFullYear() + '-' + d.getMonth();
-        if (!byMonth2[mk]) byMonth2[mk] = { label: MONTHS_FR[d.getMonth()] + ' ' + d.getFullYear(), days: [] };
+        if (!byMonth2[mk]) byMonth2[mk] = { label: MONTHS_FR[d.getMonth()] + ' ' + d.getFullYear(), y: d.getFullYear(), m: d.getMonth(), days: [] };
         byMonth2[mk].days.push(d);
       });
 
       Object.keys(byMonth2).sort().forEach(function(mk) {
         var group = byMonth2[mk];
         var mhdr = document.createElement('div');
-        mhdr.style.cssText = 'display:flex;justify-content:space-between;align-items:baseline;padding:10px 0 4px;border-bottom:1px solid var(--border);margin-bottom:2px';
+        mhdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 0 4px;border-bottom:1px solid var(--border);margin-bottom:2px';
         var mlbl = document.createElement('span');
         mlbl.style.cssText = 'font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)';
         mlbl.textContent = group.label;
@@ -3301,8 +3315,9 @@ function openSpDetailSheet(mode, contractYear) {
         });
       });
 
+      // Total
       var tot2 = document.createElement('div');
-      tot2.style.cssText = 'display:flex;justify-content:space-between;padding:12px 0 4px;margin-top:4px';
+      tot2.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px;margin-top:4px';
       var tl2 = document.createElement('span');
       tl2.style.cssText = 'font-size:0.85rem;font-weight:700;color:var(--text)';
       tl2.textContent = 'Total';
@@ -6180,6 +6195,8 @@ function closeDayMenu() {
   menu.style.transition = '';
   menu.classList.remove('open');
   backdrop.style.display = 'none';
+  var copyBtn = document.getElementById('day-menu-copy-btn');
+  if (copyBtn) copyBtn.remove();
 }
 
 // Swipe-down pour fermer le bottom sheet
@@ -7723,7 +7740,7 @@ function getSpDispos(y, m) {
       isWeekendBlocked = allBlockedKeys.has(key);
     }
 
-    var isDispo = !isWork && !isBelWork && !isVac && !isNounouEd && !isGardeMed && !isWeekendBlocked && key >= todayKey;
+    var isDispo = !isWork && !isBelWork && !isVac && !isNounouEd && !isGardeMed && !isWeekendBlocked && key >= todayKey && key <= (y + '-12-31');
     if (isDispo) dispos.push(new Date(cur));
     cur.setDate(cur.getDate() + 1);
   }
@@ -7756,12 +7773,19 @@ function renderSpDispoPanel() {
     return;
   }
 
-  // Compteur
+  // Compteur + bouton copier
   var counter = document.createElement('div');
   counter.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-top:4px';
+  var copyBtnDed = document.createElement('button');
+  copyBtnDed.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  copyBtnDed.title = 'Copier ce mois';
+  copyBtnDed.style.cssText = 'border:none;background:none;color:var(--muted);cursor:pointer;padding:4px;display:flex;align-items:center;-webkit-tap-highlight-color:transparent;flex-shrink:0';
+  (function(y2, m2, btn) {
+    btn.onclick = function() { copySpDisposMonth(y2, m2, btn); };
+  })(y, m, copyBtnDed);
   counter.innerHTML =
-    '<span style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)">' + count + ' jour' + (count > 1 ? 's' : '') + ' disponible' + (count > 1 ? 's' : '') + '</span>' +
-    '<span style="font-size:0.72rem;color:var(--muted)">Hors vacances, gardes, Belharra</span>';
+    '<span style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)">' + count + ' jour' + (count > 1 ? 's' : '') + ' disponible' + (count > 1 ? 's' : '') + '</span>';
+  counter.appendChild(copyBtnDed);
   list.appendChild(counter);
 
   // Grouper par semaine pour la lisibilité
@@ -7807,6 +7831,49 @@ function renderSpDispoPanel() {
   });
 }
 
+function copySpDisposMonth(y, m, btn) {
+  var dispos = getSpDispos(y, m);
+  if (dispos.length === 0) {
+    if (btn) { btn.innerHTML = '✗'; setTimeout(function(){ btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1500); }
+    return;
+  }
+  var monthName = MONTHS_FR[m] + ' ' + y;
+  var lines = ['📋 Dispos St Palais — ' + monthName];
+  dispos.forEach(function(d) {
+    lines.push('• ' + d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}));
+  });
+  lines.push('(' + dispos.length + ' jour' + (dispos.length > 1 ? 's' : '') + ')');
+  navigator.clipboard.writeText(lines.join('\n')).then(function() {
+    if (btn) { btn.innerHTML = '✓'; setTimeout(function(){ btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1500); }
+  }).catch(function() {
+    if (btn) { btn.innerHTML = '✗'; setTimeout(function(){ btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1500); }
+  });
+}
+
+function copySpDisposAll(disposList, btn) {
+  if (!disposList || disposList.length === 0) {
+    if (btn) { btn.innerHTML = '✗'; setTimeout(function(){ btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1500); }
+    return;
+  }
+  var lines = ['📋 Toutes mes dispos St Palais'];
+  var curMonth = -1;
+  disposList.forEach(function(d) {
+    var m = d.getMonth(), y2 = d.getFullYear();
+    var mk = y2 * 12 + m;
+    if (mk !== curMonth) {
+      curMonth = mk;
+      lines.push('\n' + MONTHS_FR[m] + ' ' + y2 + ' :');
+    }
+    lines.push('• ' + d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}));
+  });
+  lines.push('\n(' + disposList.length + ' jours au total)');
+  navigator.clipboard.writeText(lines.join('\n')).then(function() {
+    if (btn) { btn.innerHTML = '✓'; setTimeout(function(){ btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1500); }
+  }).catch(function() {
+    if (btn) { btn.innerHTML = '✗'; setTimeout(function(){ btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1500); }
+  });
+}
+
 function copySpDispos() {
   var y = spDispoView.y, m = spDispoView.m;
   var dispos = getSpDispos(y, m);
@@ -7814,7 +7881,7 @@ function copySpDispos() {
   var btnId = isDed ? 'sp-dispo-copy-btn-ded' : 'sp-dispo-copy-btn';
   if (dispos.length === 0) {
     var btn = document.getElementById(btnId);
-    if (btn) { btn.textContent = '✗ Aucune dispo'; setTimeout(function(){ btn.innerHTML = '📤 Copier'; }, 1800); }
+    if (btn) { btn.innerHTML = '✗'; setTimeout(function(){ btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1500); }
     return;
   }
 
@@ -7846,7 +7913,7 @@ function copySpDispos() {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(function() {
       var btn = document.getElementById(btnId);
-      if (btn) { btn.innerHTML = '✓ Copié !'; btn.style.background = 'rgba(22,163,74,0.2)'; setTimeout(function(){ btn.innerHTML = '📤 Copier'; btn.style.background = 'rgba(22,163,74,0.1)'; }, 2000); }
+      if (btn) { btn.innerHTML = '✓'; setTimeout(function(){ btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1500); }
     });
   } else {
     var ta = document.createElement('textarea');
@@ -7855,7 +7922,7 @@ function copySpDispos() {
     try { document.execCommand('copy'); } catch(e) {}
     document.body.removeChild(ta);
     var btn2 = document.getElementById(btnId);
-    if (btn2) { btn2.innerHTML = '✓ Copié !'; setTimeout(function(){ btn2.innerHTML = '📤 Copier'; }, 2000); }
+    if (btn2) { btn2.innerHTML = '✓'; setTimeout(function(){ btn2.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1500); }
   }
 }
 
