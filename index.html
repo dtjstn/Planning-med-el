@@ -1793,8 +1793,32 @@
       <div class="modal-title" id="bel-type-modal-date"></div>
       <button class="modal-close" onclick="closeBelTypeModal()">×</button>
     </div>
-    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:14px">Quel type de journée ?</p>
-    <div class="sp-type-list" id="bel-type-list" style="margin-bottom:12px">
+
+    <!-- Choix 1 jour / période -->
+    <div id="bel-mode-choice" style="margin-bottom:16px">
+      <p style="color:var(--muted);font-size:0.82rem;margin-bottom:10px">Ajouter :</p>
+      <div style="display:flex;gap:8px">
+        <button ontouchend="event.preventDefault();selectBelMode('single');" onclick="selectBelMode('single')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--bel);background:var(--bel-dim);color:var(--bel);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer">1 jour</button>
+        <button ontouchend="event.preventDefault();selectBelMode('range');" onclick="selectBelMode('range')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer">Période</button>
+      </div>
+    </div>
+
+    <!-- Sélecteur de période (caché par défaut) -->
+    <div id="bel-range-picker-wrap" style="display:none;margin-bottom:14px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div>
+          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;color:var(--muted);letter-spacing:0.06em">Du</label>
+          <input type="date" id="bel-range-start" style="margin-top:4px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;outline:none;width:100%">
+        </div>
+        <div>
+          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;color:var(--muted);letter-spacing:0.06em">Au</label>
+          <input type="date" id="bel-range-end" style="margin-top:4px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;outline:none;width:100%">
+        </div>
+      </div>
+    </div>
+
+    <p id="bel-type-label" style="color:var(--muted);font-size:0.82rem;margin-bottom:14px;display:none">Quel type de journée ?</p>
+    <div class="sp-type-list" id="bel-type-list" style="margin-bottom:12px;display:none">
       <div class="sp-type-item selected" data-beltype="normal" style="cursor:pointer">
         <div class="sp-type-name" style="display:flex;align-items:center;gap:8px">
           <span style="width:10px;height:10px;border-radius:50%;background:var(--bel);display:inline-block"></span>Journée Belharra
@@ -1814,9 +1838,13 @@
         <button ontouchend="event.preventDefault();forceBelType();" onclick="forceBelType()" style="flex:1;padding:8px;border-radius:8px;border:none;background:#f87171;color:#fff;font-family:DM Sans,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer">Oui</button>
       </div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between">
+    <div id="bel-type-actions" style="display:none;align-items:center;justify-content:space-between">
       <button class="sp-type-remove-btn" id="bel-type-remove-btn" style="display:none;margin-top:0" onclick="removeBelDay()">🗑 Retirer ce jour</button>
       <button id="bel-type-confirm-btn" ontouchend="event.preventDefault();confirmBelType();" onclick="confirmBelType()" style="margin-left:auto;width:44px;height:44px;border-radius:50%;background:var(--bel);border:none;color:#fff;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700">✓</button>
+    </div>
+    <!-- Bouton confirmer période -->
+    <div id="bel-range-actions" style="display:none">
+      <button ontouchend="event.preventDefault();confirmBelRange();" onclick="confirmBelRange()" style="width:100%;padding:12px;border-radius:10px;background:var(--bel);border:none;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer">Enregistrer la période</button>
     </div>
   </div>
 </div>
@@ -2035,10 +2063,11 @@ function showSyncStatus(msg, color) {
 }
 
 function saveState() {
+  _lastSaveTime = Date.now();
   try { localStorage.setItem('planmed_state', JSON.stringify(state)); } catch(e) {}
   window._planmedState = JSON.stringify(state);
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(pushToCloud, 1200);
+  syncTimer = setTimeout(pushToCloud, 800);
   setTimeout(function() {
     var conflitsPage = document.getElementById('page-conflits');
     if (conflitsPage && conflitsPage.classList.contains('active')) {
@@ -2117,6 +2146,9 @@ function pullFromCloud(callback) {
 }
 
 // Écoute temps réel via Firebase SSE (Server-Sent Events)
+var _isSavingLocally = false;
+var _lastSaveTime = 0;
+
 function startRealtimeSync() {
   try {
     var evtSource = new EventSource(FIREBASE_URL.replace('.json', '.json?accept=text/event-stream'));
@@ -2125,7 +2157,9 @@ function startRealtimeSync() {
         var msg = JSON.parse(e.data);
         if (!msg.data || !msg.data.bel) return;
         var incoming = JSON.stringify(msg.data);
+        // Ignore si c'est notre propre push ou si on vient de sauvegarder (2s de grâce)
         if (incoming === _lastPushHash) return;
+        if (Date.now() - _lastSaveTime < 2000) return;
         _lastPushHash = incoming;
         state = msg.data;
         try { localStorage.setItem('planmed_state', JSON.stringify(state)); } catch(ex) {}
@@ -4073,19 +4107,30 @@ function openBelTypeModal(key) {
   document.getElementById('bel-type-modal-date').textContent =
     d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
 
-  // Check existing
+  // Reset to mode choice
+  document.getElementById('bel-mode-choice').style.display = 'block';
+  document.getElementById('bel-range-picker-wrap').style.display = 'none';
+  document.getElementById('bel-type-label').style.display = 'none';
+  document.getElementById('bel-type-list').style.display = 'none';
+  document.getElementById('bel-type-actions').style.display = 'none';
+  document.getElementById('bel-range-actions').style.display = 'none';
+  document.getElementById('bel-type-conflict-wrap').style.display = 'none';
+
+  // Pre-fill range dates with clicked day
+  document.getElementById('bel-range-start').value = key;
+  document.getElementById('bel-range-end').value = key;
+
+  // Check existing for remove button
   var isWork = (state.bel.work||[]).includes(key);
   var isGarde = (state.gardes||[]).some(function(g){ return key>=g.start&&key<=g.end&&g.lieu==='bel'; });
-  var existingType = isGarde ? 'garde' : (isWork ? 'normal' : 'normal');
+  var existingType = isGarde ? 'garde' : 'normal';
   belSelectedType = existingType;
 
-  // Reset list selection
   var list = document.getElementById('bel-type-list');
   list.querySelectorAll('.sp-type-item').forEach(function(el){
     el.classList.toggle('selected', el.dataset.beltype === existingType);
   });
 
-  // Delegated selection
   var belListLastTouch = 0;
   list.ontouchend = function(e) {
     var item = e.target.closest('[data-beltype]');
@@ -4106,10 +4151,42 @@ function openBelTypeModal(key) {
   };
 
   document.getElementById('bel-type-remove-btn').style.display = (isWork || isGarde) ? 'block' : 'none';
-  document.getElementById('bel-type-conflict-wrap').style.display = 'none';
-  document.getElementById('bel-type-list').style.display = '';
-  document.getElementById('bel-type-confirm-btn').style.display = 'flex';
   document.getElementById('bel-type-modal-overlay').classList.add('open');
+}
+
+function selectBelMode(mode) {
+  document.getElementById('bel-mode-choice').style.display = 'none';
+  if (mode === 'single') {
+    document.getElementById('bel-type-label').style.display = 'block';
+    document.getElementById('bel-type-list').style.display = '';
+    document.getElementById('bel-type-actions').style.display = 'flex';
+  } else {
+    document.getElementById('bel-range-picker-wrap').style.display = 'block';
+    document.getElementById('bel-range-actions').style.display = 'block';
+  }
+}
+
+function confirmBelRange() {
+  var start = document.getElementById('bel-range-start').value;
+  var end   = document.getElementById('bel-range-end').value;
+  if (!start) return;
+  if (!end || end < start) end = start;
+  var cur = parseKey(start);
+  var endD = parseKey(end);
+  if (!state.bel.work) state.bel.work = [];
+  while (cur <= endD) {
+    var k = dateKey(cur);
+    var dow = cur.getDay();
+    if (dow !== 0 && dow !== 6) { // skip weekends
+      if (!state.bel.work.includes(k)) state.bel.work.push(k);
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+  saveState();
+  document.getElementById('bel-type-modal-overlay').classList.remove('open');
+  renderBel();
+  renderGlobal();
+  renderHomeRecap();
 }
 
 function closeBelTypeModal() {
@@ -5025,8 +5102,7 @@ function renderGlobal() {
     }
     // ── Priorité 4 : Autre gardien ou filtre nounou actif ──
     else if (isNounou && !isNounouEd && (!isBelWork && !isSpWork || nounouOnly)) {
-      el.style.background = 'rgba(244,114,182,0.15)';
-      el.style.borderColor = 'rgba(244,114,182,0.3)';
+      // Pas Édouard — pas de fond coloré, juste le label discret
     }
     // ── Priorité 5 : Travail pro ──
     else if (isBelWork && isSpWork) {
@@ -7189,8 +7265,10 @@ function renderNounouCalendar() {
     var ev = getNounouEvent(day.key);
     if (ev) {
       var g = GARDIENS.find(function(x){ return x.id === ev.gardien; });
-      el.style.background = g ? (g.blockssp ? 'var(--nounou-edouard)' : 'rgba(244,114,182,0.08)') : 'rgba(244,114,182,0.08)';
-      el.style.borderColor = 'rgba(244,114,182,0.3)';
+      if (g && g.blockssp) {
+        el.style.background = 'var(--nounou-edouard)';
+        el.style.borderColor = 'rgba(244,114,182,0.3)';
+      }
     }
 
     // Highlight range selection preview
