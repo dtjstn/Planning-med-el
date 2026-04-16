@@ -1351,37 +1351,26 @@
 <div id="sync-modal-overlay" class="modal-overlay" onclick="closeSyncModal(event)">
   <div class="modal-box">
     <div class="modal-header">
-      <div class="modal-title">Exporter / Importer</div>
+      <div class="modal-title">Synchronisation</div>
       <button class="modal-close" onclick="closeSyncModal()">×</button>
     </div>
-
-    <!-- CLOUD RECOVERY -->
     <div class="sync-section">
-      <div class="sync-section-title">☁️ Récupérer depuis le cloud</div>
-      <p class="sync-desc">Si vos données ont disparu, entrez votre BIN_ID JSONBin pour les récupérer.</p>
-      <input type="text" id="bin-id-input" placeholder="Ex : 64a3f1e2e64a7f3f1e2e64a7" value="" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;width:100%;margin-bottom:8px">
-      <button class="sync-action-btn" onclick="recoverFromCloud()" style="background:var(--bel-dim);color:var(--bel);border-color:var(--bel)">☁️ Récupérer</button>
-      <div id="cloud-recover-status" style="font-size:0.8rem;margin-top:6px;display:none"></div>
-      <p class="sync-desc" style="margin-top:8px;font-size:0.75rem">Votre BIN_ID actuel : <strong id="current-bin-id" style="color:var(--text)">—</strong></p>
+      <div class="sync-section-title">☁️ Statut Firebase</div>
+      <p class="sync-desc">Toutes les modifications sont synchronisées en temps réel avec Firebase. Tous les utilisateurs voient les changements instantanément.</p>
+      <button class="sync-action-btn" onclick="pullFromCloud(function(u){ if(u){ renderHomeRecap(); renderGlobal(); } })" style="background:var(--bel-dim);color:var(--bel);border-color:var(--bel)">🔄 Forcer la synchronisation</button>
     </div>
-
     <div class="sync-divider"></div>
-
-    <!-- EXPORT -->
     <div class="sync-section">
       <div class="sync-section-title">📤 Exporter mes données</div>
-      <p class="sync-desc">Copiez ce code et envoyez-le à vos amis pour qu'ils importent vos données.</p>
+      <p class="sync-desc">Sauvegarde locale de vos données.</p>
       <textarea id="sync-export-text" class="sync-textarea" readonly onclick="this.select()"></textarea>
       <button class="sync-action-btn" onclick="copyExport()">📋 Copier le code</button>
       <div id="sync-copy-confirm" style="color:var(--vac);font-size:0.8rem;margin-top:6px;display:none">✓ Copié !</div>
     </div>
-
     <div class="sync-divider"></div>
-
-    <!-- IMPORT -->
     <div class="sync-section">
       <div class="sync-section-title">📥 Importer des données</div>
-      <p class="sync-desc">Collez ici le code reçu. ⚠️ Vos données actuelles seront remplacées.</p>
+      <p class="sync-desc">Collez ici un code exporté. ⚠️ Vos données actuelles seront remplacées.</p>
       <textarea id="sync-import-text" class="sync-textarea" placeholder="Collez le code ici…"></textarea>
       <button class="sync-action-btn sync-import-btn" onclick="importData()">Importer</button>
       <div id="sync-import-error" style="color:#f87171;font-size:0.8rem;margin-top:6px;display:none"></div>
@@ -2031,12 +2020,10 @@ var state = loadState();
 // ═══════════════════════════════════════════════════
 //  JSONBIN SYNC
 // ═══════════════════════════════════════════════════
-var JSONBIN_KEY = '$2a$10$lwnZSzLea1UMIFplnIldu.7jP5Hw.xENfccm.U6JwCmd5XjjKwkcC';
-var JSONBIN_URL = 'https://api.jsonbin.io/v3/b';
-var BIN_ID = null;
-try { BIN_ID = localStorage.getItem('planmed_bin_id') || null; } catch(e) {}
+var FIREBASE_URL = 'https://planning-med-el-default-rtdb.europe-west1.firebasedatabase.app/planningmed.json';
 var syncTimer = null;
 var isSyncing = false;
+var _lastPushHash = null;
 
 function showSyncStatus(msg, color) {
   var el = document.getElementById('sync-status');
@@ -2050,13 +2037,11 @@ function saveState() {
   window._planmedState = JSON.stringify(state);
   clearTimeout(syncTimer);
   syncTimer = setTimeout(pushToCloud, 1200);
-  // Refresh conflits if page is active, always update home badge
   setTimeout(function() {
     var conflitsPage = document.getElementById('page-conflits');
     if (conflitsPage && conflitsPage.classList.contains('active')) {
       renderConflitsList();
     } else {
-      // Just update the count badge on home
       renderConflitsBadgeOnly();
     }
   }, 50);
@@ -2090,57 +2075,68 @@ function pushToCloud() {
   if (isSyncing) return;
   isSyncing = true;
   showSyncStatus('Sync...', 'var(--muted)');
-  var body = JSON.stringify({ planmed: state });
-  if (!BIN_ID) {
-    fetch(JSONBIN_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY, 'X-Bin-Name': 'PlanningMed', 'X-Bin-Private': 'false' },
-      body: body
-    }).then(function(r) { return r.json(); }).then(function(data) {
-      BIN_ID = data.metadata.id;
-      try { localStorage.setItem('planmed_bin_id', BIN_ID); } catch(e) {}
-      showSyncStatus('\u2713 Synchronis\u00e9', 'var(--vac)');
-      setTimeout(function() { showSyncStatus(''); }, 2500);
-      isSyncing = false;
-    }).catch(function() {
-      showSyncStatus('\u26a0 Hors ligne', '#f87171');
-      isSyncing = false;
-    });
-  } else {
-    fetch(JSONBIN_URL + '/' + BIN_ID, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
-      body: body
-    }).then(function() {
-      showSyncStatus('\u2713 Synchronis\u00e9', 'var(--vac)');
-      setTimeout(function() { showSyncStatus(''); }, 2500);
-      isSyncing = false;
-    }).catch(function() {
-      showSyncStatus('\u26a0 Hors ligne', '#f87171');
-      isSyncing = false;
-    });
-  }
+  var body = JSON.stringify(state);
+  _lastPushHash = body;
+  fetch(FIREBASE_URL, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: body
+  }).then(function() {
+    showSyncStatus('\u2713 Synchronisé', 'var(--vac)');
+    setTimeout(function() { showSyncStatus(''); }, 2000);
+    isSyncing = false;
+  }).catch(function() {
+    showSyncStatus('\u26a0 Hors ligne', '#f87171');
+    isSyncing = false;
+  });
 }
 
 function pullFromCloud(callback) {
-  if (!BIN_ID) { if (callback) callback(false); return; }
   showSyncStatus('Chargement...', 'var(--muted)');
-  fetch(JSONBIN_URL + '/' + BIN_ID + '/latest', {
-    headers: { 'X-Master-Key': JSONBIN_KEY }
-  }).then(function(r) { return r.json(); }).then(function(data) {
-    if (data.record && data.record.planmed) {
-      state = data.record.planmed;
-      try { localStorage.setItem('planmed_state', JSON.stringify(state)); } catch(e) {}
-      showSyncStatus('\u2713 \u00c0 jour', 'var(--vac)');
-      setTimeout(function() { showSyncStatus(''); }, 2000);
-      if (callback) callback(true);
-    } else {
+  fetch(FIREBASE_URL)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.bel) {
+        var incoming = JSON.stringify(data);
+        if (incoming === _lastPushHash) { if (callback) callback(false); return; }
+        state = data;
+        _lastPushHash = incoming;
+        try { localStorage.setItem('planmed_state', JSON.stringify(state)); } catch(e) {}
+        showSyncStatus('\u2713 À jour', 'var(--vac)');
+        setTimeout(function() { showSyncStatus(''); }, 2000);
+        if (callback) callback(true);
+      } else {
+        if (callback) callback(false);
+      }
+    }).catch(function() {
+      showSyncStatus('\u26a0 Hors ligne', '#f87171');
       if (callback) callback(false);
-    }
-  }).catch(function() {
-    showSyncStatus('\u26a0 Hors ligne', '#f87171');
-    if (callback) callback(false);
-  });
+    });
+}
+
+// Écoute temps réel via Firebase SSE (Server-Sent Events)
+function startRealtimeSync() {
+  try {
+    var evtSource = new EventSource(FIREBASE_URL.replace('.json', '.json?accept=text/event-stream'));
+    evtSource.addEventListener('put', function(e) {
+      try {
+        var msg = JSON.parse(e.data);
+        if (!msg.data || !msg.data.bel) return;
+        var incoming = JSON.stringify(msg.data);
+        if (incoming === _lastPushHash) return;
+        _lastPushHash = incoming;
+        state = msg.data;
+        try { localStorage.setItem('planmed_state', JSON.stringify(state)); } catch(ex) {}
+        renderHomeRecap();
+        renderGlobal();
+        showSyncStatus('\u2713 Mis à jour', 'var(--vac)');
+        setTimeout(function() { showSyncStatus(''); }, 2000);
+      } catch(ex) {}
+    });
+    evtSource.onerror = function() {
+      showSyncStatus('\u26a0 Hors ligne', '#f87171');
+    };
+  } catch(ex) {}
 }
 
 // ═══════════════════════════════════════════════════
@@ -6568,47 +6564,18 @@ function buildGardeItem(g, isPast) { return document.createElement('div'); } // 
 function openSyncModal() {
   var data = JSON.stringify(state);
   try {
-    var encoded = btoa(encodeURIComponent(data).replace(/%([0-9A-F]{2})/g, (m, p1) => String.fromCharCode('0x' + p1)));
+    var encoded = btoa(encodeURIComponent(data).replace(/%([0-9A-F]{2})/g, function(m, p1) { return String.fromCharCode('0x' + p1); }));
     document.getElementById('sync-export-text').value = encoded;
   } catch(e) {
-    document.getElementById('sync-export-text').value = JSON.stringify(state);
+    document.getElementById('sync-export-text').value = data;
   }
   document.getElementById('sync-import-text').value = '';
   document.getElementById('sync-copy-confirm').style.display = 'none';
   document.getElementById('sync-import-error').style.display = 'none';
-  document.getElementById('bin-id-input').value = BIN_ID || '';
-  document.getElementById('current-bin-id').textContent = BIN_ID || 'Non défini';
-  document.getElementById('cloud-recover-status').style.display = 'none';
   document.getElementById('sync-modal-overlay').classList.add('open');
 }
 
-function recoverFromCloud() {
-  var inputId = document.getElementById('bin-id-input').value.trim();
-  var status = document.getElementById('cloud-recover-status');
-  if (!inputId) { status.style.display = 'block'; status.style.color = '#f87171'; status.textContent = 'Veuillez entrer un BIN_ID.'; return; }
-  status.style.display = 'block'; status.style.color = 'var(--muted)'; status.textContent = 'Récupération en cours…';
-  BIN_ID = inputId;
-  try { localStorage.setItem('planmed_bin_id', BIN_ID); } catch(e) {}
-  fetch(JSONBIN_URL + '/' + BIN_ID + '/latest', {
-    headers: { 'X-Master-Key': JSONBIN_KEY }
-  }).then(function(r) { return r.json(); }).then(function(data) {
-    if (data.record && data.record.planmed) {
-      state = data.record.planmed;
-      if (!state.memos) state.memos = [];
-      if (!state.invites) state.invites = [];
-      if (!state.gardes) state.gardes = [];
-      if (!state.nounou) state.nounou = { events: [] };
-      try { localStorage.setItem('planmed_state', JSON.stringify(state)); } catch(e) {}
-      status.style.color = 'var(--vac)'; status.textContent = '✓ Données récupérées !';
-      document.getElementById('current-bin-id').textContent = BIN_ID;
-      setTimeout(function() { closeSyncModal(); showPage('home'); renderHomeRecap(); renderGlobal(); }, 1500);
-    } else {
-      status.style.color = '#f87171'; status.textContent = 'Aucune donnée trouvée pour ce BIN_ID.';
-    }
-  }).catch(function() {
-    status.style.color = '#f87171'; status.textContent = '⚠️ Erreur réseau. Vérifiez votre connexion.';
-  });
-}
+function recoverFromCloud() {}
 
 function closeSyncModal(e) {
   if (e && e.target !== document.getElementById('sync-modal-overlay')) return;
@@ -8494,6 +8461,7 @@ try {
       showPage('home');
     }
   });
+  startRealtimeSync();
 } catch(e) {
   document.body.innerHTML = '<div style="padding:40px;color:#333;font-family:sans-serif;background:#eef0f5;min-height:100vh"><h2 style="color:#d43a00">Erreur au chargement</h2><p style="margin-top:8px;color:#666;word-break:break-all">' + e.message + '</p><p style="margin-top:8px;color:#999;font-size:0.8rem">' + (e.stack||'').substring(0,200) + '</p><button onclick="localStorage.clear();location.reload()" style="margin-top:20px;padding:10px 20px;background:#4e9af1;border:none;border-radius:8px;color:#fff;cursor:pointer">Réinitialiser</button></div>';
 }
