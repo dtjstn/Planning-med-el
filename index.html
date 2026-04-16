@@ -1280,8 +1280,7 @@
 <!-- NAV -->
 <nav>
   <div>
-    <div class="nav-brand">PlanningMed</div>
-    <div id="nav-date" style="font-size:0.62rem;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:0.02em;margin-top:1px;text-transform:capitalize"></div>
+    <div class="nav-brand" id="nav-date-main"></div>
   </div>
   <div style="display:flex;align-items:center;gap:8px">
     <div id="sync-status" style="font-size:0.72rem;font-weight:600;color:var(--muted)"></div>
@@ -3187,11 +3186,6 @@ function renderHomeDashboard() {
   dayLabel = dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1);
 
   el.innerHTML =
-    // ── Date du jour ──
-    '<div style="margin-bottom:20px">' +
-      '<div style="font-family:\'Playfair Display\',serif;font-size:1.7rem;font-weight:700;color:var(--text);line-height:1.15">' + dayLabel + '</div>' +
-    '</div>' +
-
     // ── Contrat SP ──
     '<div style="background:var(--surface);border:1px solid var(--sp-dim);border-radius:14px;padding:14px">' +
       '<div style="font-size:0.65rem;font-weight:700;color:var(--sp);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Contrat St Palais ' + contractYear + '</div>' +
@@ -8720,8 +8714,11 @@ try {
   if (loadingEl) loadingEl.style.display = 'none';
 
   // Date dans la nav
-  var navDate = document.getElementById('nav-date');
-  if (navDate) navDate.textContent = today.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+  var navDate = document.getElementById('nav-date-main');
+  if (navDate) {
+    var dayLabel = today.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+    navDate.textContent = dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1);
+  }
 
   // Swipe sur les wrappers stables (une seule fois)
   addSwipe('bel-wrapper',           function(){ changeMonth('bel',1); },  function(){ changeMonth('bel',-1); });
