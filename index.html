@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PlanningMed — Tableau de bord</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
   :root {
     --bg: #eef0f5;
@@ -2694,6 +2696,11 @@ function confirmAddSheet() {
     var s=g('start'),e=g('end'); if(!s){err('Date requise');return;} if(!e||e<s)e=s;
     var gard = window._asNounouGardien||'attribuer';
     var nom = gard==='autres' ? g('nom') : null;
+    var nounouConflicts = gard === 'edouard' ? checkRangeConflicts(s,e,'nounou') : [];
+    if (nounouConflicts.length > 0) {
+      showAddSheetConflict(nounouConflicts.map(function(c){ return parseKey(c.key).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})+' : '+c.msgs.join(', '); }), function(){ doSaveNounouRange(s,e,gard,nom); closeAddSheet(); });
+      return;
+    }
     saveNounouRange(s,e,gard,nom);
     closeAddSheet();
   } else if (type === 'vac') {
@@ -2864,8 +2871,8 @@ function detectDayConflicts(key, evs) {
     var astrDetail3 = d3.getDay() === 6 ? 'garde le dimanche' : 'garde le samedi';
     msgs.push('Astreinte — ' + astrDetail3 + ' alors que vous travaillez ce jour');
   }
-  if (hasAstreinte && hasNounouEd) msgs.push('Astreinte ce jour — nounou Édouard en congé');
-  if (hasPro && hasNounouEd) msgs.push('Vous gardez Adèle ce jour mais vous travaillez aussi');
+  // Conflit Adèle : uniquement si Édouard travaille ET garde Adèle
+  if (hasNounouEd && (hasGarde || hasBel || hasSP)) msgs.push('Édouard garde Adèle mais travaille aussi ' + (hasGarde ? '(garde médicale)' : '(journée pro)'));
   if (hasGarde && (hasBel || hasSP)) msgs.push('Garde et travail pro le même jour');
 
   return msgs;
@@ -3125,25 +3132,31 @@ function renderHomeDashboard() {
         '<div style="position:absolute;left:0;top:0;height:100%;width:' + spRealizedPct + '%;background:' + (spCumulOver?'var(--vac)':'var(--sp)') + ';border-radius:4px;transition:width 0.5s"></div>' +
       '</div>' +
 
-      // 4 métriques
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;margin-top:10px">' +
+      // 4 métriques avec | comme séparateur
+      '<div style="display:flex;align-items:center;margin-top:10px">' +
 
-        '<div id="sp-realized-btn" style="text-align:center;cursor:pointer;padding:4px;border-radius:8px">' +
+        '<div id="sp-realized-btn" style="flex:1;text-align:center;cursor:pointer;padding:4px">' +
           '<div style="font-size:1.1rem;font-weight:700;color:var(--sp)">' + spRealized + 'h</div>' +
           '<div style="font-size:0.62rem;color:var(--muted);margin-top:2px">Réalisées ›</div>' +
         '</div>' +
 
-        '<div id="sp-planned-btn" style="text-align:center;border-left:1px solid var(--border);cursor:pointer;padding:4px;border-radius:8px">' +
+        '<div style="color:var(--border);font-size:1.2rem;padding:0 2px">|</div>' +
+
+        '<div id="sp-planned-btn" style="flex:1;text-align:center;cursor:pointer;padding:4px">' +
           '<div style="font-size:1.1rem;font-weight:700;color:' + (spPlanned > 0 ? 'rgba(212,58,0,0.6)' : 'var(--muted)') + '">' + spPlanned + 'h</div>' +
           '<div style="font-size:0.62rem;color:var(--muted);margin-top:2px">Programmées ›</div>' +
         '</div>' +
 
-        '<div style="text-align:center;border-left:1px solid var(--border)">' +
+        '<div style="color:var(--border);font-size:1.2rem;padding:0 2px">|</div>' +
+
+        '<div style="flex:1;text-align:center;padding:4px">' +
           '<div style="font-size:1.1rem;font-weight:700;color:' + (spToProgram === 0 ? 'var(--vac)' : 'var(--text)') + '">' + (spToProgram === 0 ? '✓' : spToProgram + 'h') + '</div>' +
           '<div style="font-size:0.62rem;color:var(--muted);margin-top:2px">' + (spToProgram === 0 ? 'Rempli' : 'Restantes') + '</div>' +
         '</div>' +
 
-        '<div id="sp-dispos-btn" style="text-align:center;border-left:1px solid var(--border);cursor:pointer;padding:4px;border-radius:8px">' +
+        '<div style="color:var(--border);font-size:1.2rem;padding:0 2px">|</div>' +
+
+        '<div id="sp-dispos-btn" style="flex:1;text-align:center;cursor:pointer;padding:4px">' +
           '<div style="font-size:1.1rem;font-weight:700;color:var(--dispo)" id="sp-dispos-count">…</div>' +
           '<div style="font-size:0.62rem;color:var(--muted);margin-top:2px">Dispos ›</div>' +
         '</div>' +
@@ -3970,7 +3983,7 @@ function checkConflict(key, skipType) {
   if (skipType === 'bel' || skipType === 'sp' || skipType === 'garde') {
     var typeLabel = skipType === 'bel' ? 'Belharra' : skipType === 'sp' ? 'St Palais' : 'cette garde';
     if (isVac)  msgs.push('Vous êtes en vacances' + vacName + ' ce jour-là. Travailler à ' + typeLabel + ' le même jour ?');
-    if (isNou)  msgs.push('La nounou est en congé ce jour — Adèle sera avec vous. Travailler à ' + typeLabel + ' quand même ?');
+    if (isNou)  msgs.push('⚠️ Édouard garde Adèle ce jour — et vous travaillez à ' + typeLabel + '. Qui garde Adèle ?');
     if (isAstreinte) {
       var astrDetail = dow === 6 ? 'garde le dimanche' : 'garde le samedi';
       msgs.push('Astreinte ce weekend (' + astrDetail + '). Travailler à ' + typeLabel + ' en plus ?');
@@ -3990,9 +4003,13 @@ function checkConflict(key, skipType) {
       msgs.push('Vous avez une astreinte (' + astrDetail + ') ce jour. Être en vacances en même temps ?');
     }
   } else if (skipType === 'nounou') {
-    if (isBel)        msgs.push('La nounou est en congé ce jour — Adèle sera avec vous. Travailler à Belharra quand même ?');
-    if (isSP)         msgs.push('La nounou est en congé ce jour — Adèle sera avec vous. Travailler à St Palais quand même ?');
-    if (isGarde)      msgs.push('La nounou est en congé ce jour — Adèle sera avec vous. Assurer une garde quand même ?');
+    if (isBel)        msgs.push('⚠️ Édouard garde Adèle ce jour — il travaille aussi à Belharra');
+    if (isSP)         msgs.push('⚠️ Édouard garde Adèle ce jour — il travaille aussi à St Palais');
+    if (isGarde)      msgs.push('⚠️ Édouard garde Adèle ce jour — il a aussi une garde médicale');
+    if (isAstreinte) {
+      var astrDetail = dow === 6 ? 'garde le dimanche' : 'garde le samedi';
+      msgs.push('⚠️ Édouard garde Adèle ce jour — il a aussi une astreinte (' + astrDetail + ')');
+    }
   }
 
   return msgs;
@@ -6935,16 +6952,18 @@ function renderNounouTracker() {
   var travailles = totalOuvres - conges;
 
   el.innerHTML =
-    '<div style="display:flex;gap:16px;padding:8px 0;margin-bottom:4px;justify-content:center">' +
-      '<div id="nounou-travailles-btn" style="text-align:center;cursor:pointer">' +
+    '<div style="display:flex;align-items:center;padding:8px 0;margin-bottom:4px;justify-content:center">' +
+      '<div id="nounou-travailles-btn" style="text-align:center;cursor:pointer;padding:4px 12px">' +
         '<div style="font-size:1rem;font-weight:700;color:var(--nounou)">' + travailles + 'j</div>' +
         '<div style="font-size:0.62rem;color:var(--muted);margin-top:1px">Travaillés ›</div>' +
       '</div>' +
-      '<div id="nounou-conges-btn" style="text-align:center;border-left:1px solid var(--border);padding-left:16px;cursor:pointer">' +
+      '<div style="color:var(--border);font-size:1.2rem;padding:0 2px">|</div>' +
+      '<div id="nounou-conges-btn" style="text-align:center;cursor:pointer;padding:4px 12px">' +
         '<div style="font-size:1rem;font-weight:700;color:#f87171">' + conges + 'j</div>' +
         '<div style="font-size:0.62rem;color:var(--muted);margin-top:1px">Congés ›</div>' +
       '</div>' +
-      '<div style="text-align:center;border-left:1px solid var(--border);padding-left:16px">' +
+      '<div style="color:var(--border);font-size:1.2rem;padding:0 2px">|</div>' +
+      '<div style="text-align:center;padding:4px 12px">' +
         '<div style="font-size:1rem;font-weight:700;color:var(--text)">' + totalOuvres + 'j</div>' +
         '<div style="font-size:0.62rem;color:var(--muted);margin-top:1px">Ouvrés</div>' +
       '</div>' +
@@ -8345,7 +8364,8 @@ function renderDedSp() {
   }
   function sep() {
     var s = document.createElement('div');
-    s.style.cssText = 'width:1px;background:var(--border);align-self:stretch;margin:4px 0';
+    s.style.cssText = 'color:var(--border);font-size:1.2rem;padding:0 2px;align-self:center';
+    s.textContent = '|';
     return s;
   }
 
@@ -8458,10 +8478,11 @@ try {
       if (!state.invites) state.invites = [];
       if (!state.gardes) state.gardes = [];
       if (!state.view.global) state.view.global = { y: today.getFullYear(), m: today.getMonth() };
-      showPage('home');
+      renderHomeRecap();
+      renderGlobal();
     }
   });
-  startRealtimeSync();
+  setTimeout(startRealtimeSync, 500);
 } catch(e) {
   document.body.innerHTML = '<div style="padding:40px;color:#333;font-family:sans-serif;background:#eef0f5;min-height:100vh"><h2 style="color:#d43a00">Erreur au chargement</h2><p style="margin-top:8px;color:#666;word-break:break-all">' + e.message + '</p><p style="margin-top:8px;color:#999;font-size:0.8rem">' + (e.stack||'').substring(0,200) + '</p><button onclick="localStorage.clear();location.reload()" style="margin-top:20px;padding:10px 20px;background:#4e9af1;border:none;border-radius:8px;color:#fff;cursor:pointer">Réinitialiser</button></div>';
 }
