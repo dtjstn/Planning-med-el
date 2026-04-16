@@ -1664,7 +1664,7 @@
       </div>
       <div style="flex:1">
         <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;color:var(--muted);letter-spacing:0.06em;display:block;margin-bottom:6px">Heure</label>
-        <input type="time" id="memo-edit-time" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;width:100%">
+        <div style="display:flex;align-items:center;gap:6px"><select id="memo-edit-time-h" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;flex:1"><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option></select><span style="font-weight:700;color:var(--muted);font-size:1.1rem">:</span><select id="memo-edit-time-m" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;flex:1"><option value="00">00</option><option value="15">15</option><option value="30">30</option><option value="45">45</option></select></div>
       </div>
     </div>
     <button class="modal-submit-btn" onclick="saveChangeMemoDate()">Enregistrer</button>
@@ -2499,14 +2499,22 @@ function openChangeMemoDateModal(memoEv) {
   _memoEditRef = memoEv;
   document.getElementById('memo-edit-title').textContent = memoEv.name;
   document.getElementById('memo-edit-date').value = memoEv.start || '';
-  document.getElementById('memo-edit-time').value = memoEv.time || '';
+  var t = memoEv.time || '08:00';
+  var parts = t.split(':');
+  var h = document.getElementById('memo-edit-time-h');
+  var m = document.getElementById('memo-edit-time-m');
+  if (h) h.value = parts[0] || '08';
+  // round minutes to nearest 15
+  if (m) { var min = parseInt(parts[1]||'0'); m.value = String(Math.round(min/15)*15%60).padStart(2,'0'); }
   document.getElementById('memo-edit-modal-overlay').classList.add('open');
 }
 
 function saveChangeMemoDate() {
   if (!_memoEditRef) return;
   var newDate = document.getElementById('memo-edit-date').value;
-  var newTime = document.getElementById('memo-edit-time').value;
+  var h = document.getElementById('memo-edit-time-h');
+  var m = document.getElementById('memo-edit-time-m');
+  var newTime = h && m ? h.value + ':' + m.value : '';
   if (!newDate) return;
   _memoEditRef.start = newDate;
   _memoEditRef.end   = newDate;
@@ -2702,7 +2710,7 @@ function selectAddSheetType(typeId) {
     form.innerHTML = textField('name', 'Titre', 'Ex : Dîner chez Paul…') +
       '<div style="display:flex;gap:10px">' +
         dateField('date', 'Date', today_key) +
-        '<div style="flex:1;margin-bottom:12px"><label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:0.05em;display:block;margin-bottom:5px">Heure</label><input type="time" id="as-time" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:DM Sans,sans-serif;font-size:0.88rem;outline:none;width:100%"></div>' +
+        '<div style="flex:1;margin-bottom:12px"><label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:0.05em;display:block;margin-bottom:5px">Heure</label><div style=\"display:flex;align-items:center;gap:6px\"><select id=\"as-time-h\" style=\"background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-family:DM Sans,sans-serif;font-size:0.9rem;font-weight:600;outline:none;cursor:pointer;flex:1\"><option value=\"00\">00</option><option value=\"01\">01</option><option value=\"02\">02</option><option value=\"03\">03</option><option value=\"04\">04</option><option value=\"05\">05</option><option value=\"06\">06</option><option value=\"07\">07</option><option value=\"08\">08</option><option value=\"09\">09</option><option value=\"10\">10</option><option value=\"11\">11</option><option value=\"12\">12</option><option value=\"13\">13</option><option value=\"14\">14</option><option value=\"15\">15</option><option value=\"16\">16</option><option value=\"17\">17</option><option value=\"18\">18</option><option value=\"19\">19</option><option value=\"20\">20</option><option value=\"21\">21</option><option value=\"22\">22</option><option value=\"23\">23</option></select><span style=\"font-weight:700;color:var(--muted);font-size:1.1rem\">:</span><select id=\"as-time-m\" style=\"background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-family:DM Sans,sans-serif;font-size:0.9rem;font-weight:600;outline:none;cursor:pointer;flex:1\"><option value=\"00\">00</option><option value=\"15\">15</option><option value=\"30\">30</option><option value=\"45\">45</option></select></div></div>' +
       '</div>';
   }
 }
@@ -2715,7 +2723,16 @@ function asSelectGarde(lieu) {
   if (spBtn)  { spBtn.style.border  = lieu==='sp'  ? '2px solid var(--sp)'  : '1px solid var(--border)'; spBtn.style.background  = lieu==='sp'  ? 'var(--sp-dim)'  : 'var(--surface2)'; spBtn.style.color  = lieu==='sp'  ? 'var(--sp)'  : 'var(--muted)'; }
 }
 
-function g(id) { var el=document.getElementById('as-'+id); return el?el.value.trim():''; }
+function g(id) {
+  if (id === 'time') {
+    var h = document.getElementById('as-time-h');
+    var m = document.getElementById('as-time-m');
+    if (h && m) return h.value + ':' + m.value;
+    return '';
+  }
+  var el = document.getElementById('as-'+id);
+  return el ? el.value.trim() : '';
+}
 
 function confirmAddSheet() {
   var type = _addSheetType;
