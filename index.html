@@ -1547,9 +1547,8 @@
     <div class="global-big-cal" id="global-big-cal"></div>
   </div>
   <!-- Liste invités du mois -->
-  <div id="global-invites-list" style="margin-top:16px"></div>
-  <!-- Liste congés nounou du mois -->
-  <div id="global-nounou-list" style="margin-top:8px"></div>
+  <!-- Liste événements du mois (invités + nounou + mémos) -->
+  <div id="global-events-list" style="margin-top:16px"></div>
 </div>
 
 <!-- ══ BOUTON + FIXE ══ -->
@@ -3518,15 +3517,20 @@ function renderHomeMonthEvents() {
     if (ev.start < todayKey) return;
     var s = parseKey(ev.start);
     if (s > horizon) return;
-    var dateStr = s.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
-    if (ev.time) dateStr += ' · ' + ev.time;
-    chips.push({ icon:'📌', label:ev.name, date:dateStr, color:'var(--memo)', dim:'var(--memo-dim)', now:false, sort:ev.start, type:'memo', ev:ev });
+    var dateStr2 = s.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
+    if (ev.time) dateStr2 += ' · ' + ev.time;
+    var isNowMemo = ev.start === todayKey;
+    chips.push({ icon:'📌', label:ev.name, date: isNowMemo ? 'Aujourd\'hui' + (ev.time ? ' · ' + ev.time : '') : dateStr2, color:'var(--memo)', dim:'var(--memo-dim)', now: isNowMemo, sort:ev.start, type:'memo', ev:ev });
   });
 
   if (chips.length === 0) return;
 
   // Tri par date
-  chips.sort(function(a,b){ return a.sort.localeCompare(b.sort); });
+  chips.sort(function(a,b){
+    if (a.now && !b.now) return -1;
+    if (!a.now && b.now) return 1;
+    return a.sort.localeCompare(b.sort);
+  });
 
   // Section label
   var sec = document.createElement('div');
@@ -3556,7 +3560,11 @@ function renderHomeMonthEvents() {
 
     group.chips.forEach(function(chip) {
       var row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--surface2)';
+      if (chip.now) {
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;margin:0 -8px 2px;border-radius:8px;background:var(--surface2)';
+      } else {
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--surface2)';
+      }
 
       var info = document.createElement('div');
       info.style.cssText = 'flex:1;min-width:0';
@@ -3580,7 +3588,7 @@ function renderHomeMonthEvents() {
 
       // Dates à droite
       var dateEl2 = document.createElement('span');
-      dateEl2.style.cssText = 'font-size:0.75rem;color:var(--muted);font-weight:500;white-space:nowrap;flex-shrink:0;margin-left:auto;padding-left:8px;text-align:right';
+      dateEl2.style.cssText = 'font-size:0.75rem;color:' + (chip.now ? 'var(--text)' : 'var(--muted)') + ';font-weight:' + (chip.now ? '700' : '500') + ';white-space:nowrap;flex-shrink:0;margin-left:auto;padding-left:8px;text-align:right';
       dateEl2.textContent = chip.date;
 
       row.appendChild(info);
@@ -4420,7 +4428,7 @@ function renderGlobalDynamicLegend(y, m) {
     } else {
       // Juste un point coloré, sans contour
       var dot = document.createElement('span');
-      dot.style.cssText = 'width:8px;height:8px;border-radius:50%;background:' + item.color + ';flex-shrink:0;display:inline-block';
+      dot.style.cssText = 'width:7px;height:7px;border-radius:50%;background:' + color + ';flex-shrink:0;display:inline-block';
       div.appendChild(dot);
     }
 
@@ -4429,99 +4437,119 @@ function renderGlobalDynamicLegend(y, m) {
   });
 }
 
-function renderGlobalInvitesList(y, m) {
-  var el = document.getElementById('global-invites-list');
+function renderGlobalInvitesList() {}
+
+function renderGlobalNounouList() {}
+
+function renderGlobalEventsList(y, m) {
+  var el = document.getElementById('global-events-list');
   if (!el) return;
   el.innerHTML = '';
   var firstDay = new Date(y, m, 1);
   var lastDay  = new Date(y, m+1, 0);
 
-  var invitesThisMonth = (state.invites || []).filter(function(ev) {
-    return parseKey(ev.start) <= lastDay && parseKey(ev.end) >= firstDay;
-  }).sort(function(a,b){ return a.start.localeCompare(b.start); });
+  var items = [];
 
-  if (invitesThisMonth.length === 0) return;
-
-  invitesThisMonth.forEach(function(ev) {
-    var s = parseKey(ev.start), e = parseKey(ev.end);
-    var row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--surface2)';
-    var dot = document.createElement('span');
-    dot.style.cssText = 'width:7px;height:7px;border-radius:50%;background:var(--invites);flex-shrink:0;display:inline-block';
-    var info = document.createElement('div');
-    info.style.cssText = 'flex:1;min-width:0';
-    var cat = document.createElement('span');
-    cat.style.cssText = 'font-size:0.85rem;font-weight:700;color:var(--text)';
-    cat.textContent = 'À la maison';
-    if (ev.name) {
-      var nameEl = document.createElement('span');
-      nameEl.style.cssText = 'font-size:0.85rem;font-weight:400;color:var(--text);margin-left:5px';
-      nameEl.textContent = '– ' + ev.name;
-      cat.appendChild(nameEl);
+  // Invités
+  (state.invites || []).forEach(function(ev) {
+    if (parseKey(ev.start) <= lastDay && parseKey(ev.end) >= firstDay) {
+      var isNow = ev.start <= todayKey && ev.end >= todayKey;
+      items.push({ sort: ev.start, isNow: isNow, type: 'invite', ev: ev });
     }
-    info.appendChild(cat);
-    var dateStr = s.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
-    if (ev.start !== ev.end) dateStr += ' → ' + e.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
-    var dates = document.createElement('span');
-    dates.style.cssText = 'font-size:0.75rem;color:var(--muted);font-weight:500;white-space:nowrap;flex-shrink:0;margin-left:auto;padding-left:8px';
-    dates.textContent = dateStr;
-    row.appendChild(dot); row.appendChild(info); row.appendChild(dates);
-    el.appendChild(row);
   });
-}
 
-function renderGlobalNounouList(y, m) {
-  var el = document.getElementById('global-nounou-list');
-  if (!el) return;
-  el.innerHTML = '';
-  var firstDay = new Date(y, m, 1);
-  var lastDay  = new Date(y, m+1, 0);
-
-  var events = (state.nounou && state.nounou.events || []).filter(function(ev) {
-    var s = parseKey(ev.start);
-    return s >= firstDay && s <= lastDay;
+  // Nounou
+  var nounouEvs = (state.nounou && state.nounou.events || []).filter(function(ev) {
+    return parseKey(ev.start) >= firstDay && parseKey(ev.start) <= lastDay;
   }).sort(function(a,b){ return a.start.localeCompare(b.start); });
-
-  if (events.length === 0) return;
-
   var grouped = [];
-  events.forEach(function(ev) {
+  nounouEvs.forEach(function(ev) {
     var g = GARDIENS.find(function(x){ return x.id === ev.gardien; });
     var label = g ? (g.id === 'attribuer' ? 'À attribuer' : (g.id === 'autres' && ev.nom ? ev.nom : g.label)) : 'Nounou';
     var last = grouped[grouped.length - 1];
     if (last && last.label === label) {
-      var lastDate = parseKey(last.endDate);
-      lastDate.setDate(lastDate.getDate() + 1);
-      if (lastDate.toDateString() === parseKey(ev.start).toDateString()) { last.endDate = ev.start; return; }
+      var ld = parseKey(last.endDate); ld.setDate(ld.getDate()+1);
+      if (ld.toDateString() === parseKey(ev.start).toDateString()) { last.endDate = ev.start; return; }
     }
     grouped.push({ label: label, startDate: ev.start, endDate: ev.start });
   });
-
   grouped.forEach(function(p) {
-    var s = parseKey(p.startDate), e = parseKey(p.endDate);
+    var isNow = p.startDate <= todayKey && p.endDate >= todayKey;
+    items.push({ sort: p.startDate, isNow: isNow, type: 'nounou', p: p });
+  });
+
+  // Mémos
+  (state.memos || []).forEach(function(ev) {
+    var d = parseKey(ev.start);
+    if (d >= firstDay && d <= lastDay) {
+      var isNow = ev.start === todayKey;
+      items.push({ sort: ev.start, isNow: isNow, type: 'memo', ev: ev });
+    }
+  });
+
+  if (items.length === 0) return;
+
+  // Tri : aujourd'hui en premier, puis par date
+  items.sort(function(a,b){
+    if (a.isNow && !b.isNow) return -1;
+    if (!a.isNow && b.isNow) return 1;
+    return a.sort.localeCompare(b.sort);
+  });
+
+  items.forEach(function(item) {
     var row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--surface2)';
+    row.style.cssText = item.isNow
+      ? 'display:flex;align-items:center;gap:8px;padding:8px 10px;margin:0 -8px 2px;border-radius:8px;border-left:3px solid {COLOR};background:var(--surface)'
+      : 'display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--surface2)';
+
+    var color, catText, nameStr, dateStr;
+
+    if (item.type === 'invite') {
+      color = 'var(--invites)';
+      catText = 'À la maison';
+      nameStr = item.ev.name || '';
+      var s = parseKey(item.ev.start), e = parseKey(item.ev.end);
+      dateStr = item.isNow ? 'En ce moment' : s.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + (item.ev.start !== item.ev.end ? ' → ' + e.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '');
+    } else if (item.type === 'nounou') {
+      color = 'var(--nounou)';
+      catText = 'Congé Nounou';
+      nameStr = item.p.label;
+      var s = parseKey(item.p.startDate), e = parseKey(item.p.endDate);
+      dateStr = item.isNow ? 'En ce moment' : s.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + (item.p.startDate !== item.p.endDate ? ' → ' + e.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '');
+    } else {
+      color = 'var(--memo)';
+      catText = 'Mémo';
+      nameStr = item.ev.name;
+      dateStr = item.isNow ? 'Aujourd\'hui' + (item.ev.time ? ' · ' + item.ev.time : '') : parseKey(item.ev.start).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + (item.ev.time ? ' · ' + item.ev.time : '');
+    }
+
+    row.style.cssText = row.style.cssText.replace('{COLOR}', color);
+
     var dot = document.createElement('span');
-    dot.style.cssText = 'width:7px;height:7px;border-radius:50%;background:var(--nounou);flex-shrink:0;display:inline-block';
+    dot.style.cssText = 'width:7px;height:7px;border-radius:50%;background:' + color + ';flex-shrink:0;display:inline-block';
     var info = document.createElement('div');
     info.style.cssText = 'flex:1;min-width:0';
     var cat = document.createElement('span');
     cat.style.cssText = 'font-size:0.85rem;font-weight:700;color:var(--text)';
-    cat.textContent = 'Congé Nounou';
-    var nameEl = document.createElement('span');
-    nameEl.style.cssText = 'font-size:0.85rem;font-weight:400;color:var(--text);margin-left:5px';
-    nameEl.textContent = '– ' + p.label;
-    cat.appendChild(nameEl);
+    cat.textContent = catText;
+    if (nameStr) {
+      var nameEl = document.createElement('span');
+      nameEl.style.cssText = 'font-size:0.85rem;font-weight:400;color:var(--text);margin-left:5px';
+      nameEl.textContent = '– ' + nameStr;
+      cat.appendChild(nameEl);
+    }
     info.appendChild(cat);
-    var dateStr = s.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
-    if (p.startDate !== p.endDate) dateStr += ' → ' + e.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
     var dates = document.createElement('span');
-    dates.style.cssText = 'font-size:0.75rem;color:var(--muted);font-weight:500;white-space:nowrap;flex-shrink:0;margin-left:auto;padding-left:8px';
+    dates.style.cssText = 'font-size:0.75rem;color:' + (item.isNow ? color : 'var(--muted)') + ';font-weight:' + (item.isNow ? '700' : '500') + ';white-space:nowrap;flex-shrink:0;margin-left:auto;padding-left:8px';
     dates.textContent = dateStr;
     row.appendChild(dot); row.appendChild(info); row.appendChild(dates);
     el.appendChild(row);
   });
 }
+
+function renderGlobalInvitesList() {}
+function renderGlobalNounouList() {}
+function renderGlobalMemoList() {}
 
 function renderSpHoursTracker() {
   // Legacy element (no longer in DOM) — skip
@@ -5315,8 +5343,7 @@ function renderGlobal() {
   });
 
   // Swipe support
-  renderGlobalInvitesList(y, m);
-  renderGlobalNounouList(y, m);
+  renderGlobalEventsList(y, m);
   renderGlobalDynamicLegend(y, m);
 
   var wrap = document.getElementById('global-cal-wrap');
