@@ -2099,9 +2099,9 @@ function renderConflitsBadgeOnly() {
     if ((state.sp.work||[]).includes(k)&&!(garde&&garde.lieu==='sp'))   evs.push({type:'sp'});
     if (garde) evs.push({type:'garde'});
     var dow = cur.getDay();
-    if (dow===6){var dk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+1));if((state.gardes||[]).some(function(g){return dk>=g.start&&dk<=g.end;})&&!garde)evs.push({type:'info'});}
-    if (dow===0){var sk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()-1));if((state.gardes||[]).some(function(g){return sk>=g.start&&sk<=g.end;})&&!garde)evs.push({type:'info'});}
-    if ((state.vac&&state.vac.events||[]).find(function(e){return k>=e.start&&k<=e.end;})) evs.push({type:'vac'});
+    if (dow===6){var dk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+1));if((state.gardes||[]).some(function(g){return dk>=g.start&&dk<=g.end; })&&!garde)evs.push({type:'info'});}
+    if (dow===0){var sk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()-1));if((state.gardes||[]).some(function(g){return sk>=g.start&&sk<=g.end; })&&!garde)evs.push({type:'info'});}
+    if ((state.vac&&state.vac.events||[]).find(function(e){return k>=e.start&&k<=e.end; })) evs.push({type:'vac'});
     var nev=getNounouEvent?getNounouEvent(k):null;
     if (nev&&nev.gardien==='edouard') evs.push({type:'nounou',isEdouard:true});
     if (detectDayConflicts(k, evs).length > 0) count++;
@@ -2123,11 +2123,9 @@ function pushToCloud() {
   }).then(function() {
     showSyncStatus('\u2713 Synchronisé', 'var(--vac)');
     setTimeout(function() { showSyncStatus(''); }, 2000);
-    isSyncing = false;
-  }).catch(function() {
+    isSyncing = false; }).catch(function() {
     showSyncStatus('\u26a0 Hors ligne', '#f87171');
-    isSyncing = false;
-  });
+    isSyncing = false; });
 }
 
 function pullFromCloud(callback) {
@@ -2191,7 +2189,7 @@ function showPage(name) {
     p.classList.remove('active');
     p.style.removeProperty('display');
   });
-  document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.bottom-tab').forEach(function(t) { t.classList.remove('active'); });
 
   var target = document.getElementById('page-'+name);
   if (target) {
@@ -2247,12 +2245,12 @@ function isInWeek(dKey, weekMonKey) {
 }
 
 function isDateInWeeks(dKey, weeksArr) {
-  return weeksArr.some(wk => isInWeek(dKey, wk));
+  return weeksArr.some(function(wk) { return isInWeek(dKey, wk); });
 }
 
 function isDateInVacEvents(dKey) {
   var d = parseKey(dKey);
-  return (state.vac.events || []).some(ev => {
+  return (state.vac.events || []).some(function(ev) {
     var s = parseKey(ev.start);
     var e = parseKey(ev.end);
     return d >= s && d <= e;
@@ -2570,8 +2568,7 @@ function openQuickActionsModal() {
   showAddSheetStep1();
   document.getElementById('add-sheet-backdrop').style.display = 'block';
   requestAnimationFrame(function(){
-    document.getElementById('add-sheet').style.transform = 'translateY(0)';
-  });
+    document.getElementById('add-sheet').style.transform = 'translateY(0)'; });
 }
 
 function closeAddSheet() {
@@ -2584,8 +2581,7 @@ function closeQA() { closeAddSheet(); }
 function showAddSheetStep1() {
   document.getElementById('add-sheet-step1').style.display = 'block';
   document.getElementById('add-sheet-step2').style.display = 'none';
-  _addSheetType = null;
-}
+  _addSheetType = null; }
 
 function selectAddSheetType(typeId) {
   _addSheetType = typeId;
@@ -2668,8 +2664,7 @@ function selectAddSheetType(typeId) {
       item.dataset.gardien = g.id;
       item.innerHTML = '<div class="sp-type-name" style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:var(--nounou);display:inline-block"></span>' + g.label + '</div>' + (g.blockssp ? '<div class="sp-type-hours" style="background:var(--nounou-dim);color:var(--nounou)">Bloque SP</div>' : '');
       gnList.appendChild(item);
-      if (!firstG) firstG = g.id;
-    });
+      if (!firstG) firstG = g.id; });
     window._asNounouGardien = firstG;
     var gnTouchStartY = 0, gnLastTouch = 0;
     gnList.addEventListener('touchstart', function(e){ gnTouchStartY = e.touches[0].clientY; }, { passive: true });
@@ -2683,8 +2678,7 @@ function selectAddSheetType(typeId) {
       item.classList.add('selected');
       window._asNounouGardien = item.dataset.gardien;
       var nomWrap = document.getElementById('as-nom-wrap');
-      if (nomWrap) nomWrap.style.display = item.dataset.gardien === 'autres' ? 'block' : 'none';
-    });
+      if (nomWrap) nomWrap.style.display = item.dataset.gardien === 'autres' ? 'block' : 'none'; });
     gnList.addEventListener('click', function(e) {
       if (Date.now() - gnLastTouch < 500) return;
       var item = e.target.closest('[data-gardien]');
@@ -2693,8 +2687,7 @@ function selectAddSheetType(typeId) {
       item.classList.add('selected');
       window._asNounouGardien = item.dataset.gardien;
       var nomWrap = document.getElementById('as-nom-wrap');
-      if (nomWrap) nomWrap.style.display = item.dataset.gardien === 'autres' ? 'block' : 'none';
-    });
+      if (nomWrap) nomWrap.style.display = item.dataset.gardien === 'autres' ? 'block' : 'none'; });
     form.appendChild(gnList);
     var nomW = document.createElement('div');
     nomW.id = 'as-nom-wrap'; nomW.style.display = 'none'; nomW.style.marginTop = '10px';
@@ -2822,14 +2815,12 @@ function showAddSheetConflict(msgs, onForce) {
       if (parts.length === 2) {
         return '<div style="margin-bottom:10px"><div style="font-weight:600;color:var(--text);margin-bottom:2px">' + parts[0] + '</div><div style="color:var(--muted);font-size:0.88rem">' + parts[1] + '</div></div>';
       }
-      return '<div style="margin-bottom:8px">' + m + '</div>';
-    }).join('');
+      return '<div style="margin-bottom:8px">' + m + '</div>'; }).join('');
   document.getElementById('conflict-popup-overlay').classList.add('open');
 }
 function cancelConflictPopup() {
   document.getElementById('conflict-popup-overlay').classList.remove('open');
-  _addSheetForcePending = null;
-}
+  _addSheetForcePending = null; }
 function forceConflictPopup() {
   document.getElementById('conflict-popup-overlay').classList.remove('open');
   if (_addSheetForcePending) { _addSheetForcePending(); _addSheetForcePending = null; }
@@ -2882,8 +2873,7 @@ function saveVacQuick() {
       var msgsHtml = c.msgs.map(function(m) {
         return m.replace(/\(([^)]+)\)/g, '<span style="opacity:0.6;font-size:0.9em">($1)</span>');
       }).join(', ');
-      return d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}) + ' : ' + msgsHtml;
-    });
+      return d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}) + ' : ' + msgsHtml; });
     document.getElementById('vq-conflict').style.display = 'block';
     document.getElementById('vq-submit-wrap').style.display = 'none';
     return;
@@ -2894,14 +2884,12 @@ function saveVacQuick() {
 function cancelVacQuickConflict() {
   document.getElementById('vq-conflict').style.display = 'none';
   document.getElementById('vq-submit-wrap').style.display = 'flex';
-  _vqPending = null;
-}
+  _vqPending = null; }
 
 function forceVacQuick() {
   if (!_vqPending) return;
   doSaveVacQuick(_vqPending.name, _vqPending.start, _vqPending.end);
-  _vqPending = null;
-}
+  _vqPending = null; }
 
 function doSaveVacQuick(name, start, end) {
   if (!state.vac) state.vac = { events: [], year: today.getFullYear() };
@@ -2949,8 +2937,7 @@ function detectDayConflicts(key, evs) {
 function showAutresSub(sub) {
   ['conflits','avenir'].forEach(function(s) {
     document.getElementById('subtab-autres-' + s).classList.toggle('active', s === sub);
-    document.getElementById('autres-' + s + '-content').style.display = s === sub ? 'block' : 'none';
-  });
+    document.getElementById('autres-' + s + '-content').style.display = s === sub ? 'block' : 'none'; });
   if (sub === 'conflits') renderConflitsList();
   if (sub === 'avenir')   renderAvenirRecap();
 }
@@ -3010,9 +2997,9 @@ function renderConflitsList() {
     if ((state.sp.work||[]).includes(k) && !isGardeSp)  evs.push({type:'sp'});
     if (garde) evs.push({type:'garde'});
     var dow = cur.getDay();
-    if (dow===6){ var dk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+1)); if((state.gardes||[]).some(function(g){return dk>=g.start&&dk<=g.end;})&&!garde) evs.push({type:'info'}); }
-    if (dow===0){ var sk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()-1)); if((state.gardes||[]).some(function(g){return sk>=g.start&&sk<=g.end;})&&!garde) evs.push({type:'info'}); }
-    var vac=(state.vac&&state.vac.events||[]).find(function(e){return k>=e.start&&k<=e.end;});
+    if (dow===6){ var dk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+1)); if((state.gardes||[]).some(function(g){return dk>=g.start&&dk<=g.end; })&&!garde) evs.push({type:'info'}); }
+    if (dow===0){ var sk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()-1)); if((state.gardes||[]).some(function(g){return sk>=g.start&&sk<=g.end; })&&!garde) evs.push({type:'info'}); }
+    var vac=(state.vac&&state.vac.events||[]).find(function(e){return k>=e.start&&k<=e.end; });
     if (vac) evs.push({type:'vac'});
     var nev=getNounouEvent?getNounouEvent(k):null;
     if (nev&&nev.gardien==='edouard') evs.push({type:'nounou',isEdouard:true});
@@ -3052,11 +3039,11 @@ function renderConflitsList() {
       var isVac   = isDateInVacEvents(key);
       var isNou   = isDateInNounou(key);
       var isNouEd = isNounouEdouard(key);
-      var isG     = (state.gardes||[]).some(function(g){return key>=g.start&&key<=g.end;});
+      var isG     = (state.gardes||[]).some(function(g){return key>=g.start&&key<=g.end; });
 
       function doOpen() {
         // Recalculate from current state at press time
-        var garde2 = (state.gardes||[]).some(function(g){return key>=g.start&&key<=g.end;});
+        var garde2 = (state.gardes||[]).some(function(g){return key>=g.start&&key<=g.end; });
         openDaySummary(key, {
           isBelWork:    (state.bel.work||[]).includes(key),
           isSpWork:     (state.sp.work||[]).includes(key),
@@ -3096,19 +3083,19 @@ function renderTodayTomorrow() {
   [[today, 'Aujourd\'hui'], [tomDate, 'Demain']].forEach(function(pair) {
     var d = pair[0], label = pair[1];
     var k = dateKey(d);
-    var garde = (state.gardes||[]).find(function(g){return k>=g.start&&k<=g.end;});
+    var garde = (state.gardes||[]).find(function(g){return k>=g.start&&k<=g.end; });
     var isGBel = garde&&garde.lieu==='bel', isGSp = garde&&garde.lieu==='sp';
     var evs = [];
     if ((state.bel.work||[]).includes(k)&&!isGBel) evs.push({text:'Belharra',color:'var(--bel)'});
     if ((state.sp.work||[]).includes(k)&&!isGSp) evs.push({text:'St Palais ('+getSpHours(k)+'h)',color:'#ff8c00'});
     if (garde) evs.push({text:'Garde '+(garde.lieu==='bel'?'Belharra':'St Palais'),color:'var(--gardes)'});
-    var vac=(state.vac&&state.vac.events||[]).find(function(e){return k>=e.start&&k<=e.end;});
+    var vac=(state.vac&&state.vac.events||[]).find(function(e){return k>=e.start&&k<=e.end; });
     if (vac) evs.push({text:vac.name||'Vacances',color:'var(--vac)'});
     var nev=getNounouEvent?getNounouEvent(k):null;
-    if (nev){var ng=GARDIENS.find(function(x){return x.id===nev.gardien;});evs.push({text:'Congé nounou'+(ng?(' ('+( ng.id==='autres'&&nev.nom?nev.nom:ng.label)+')'):''),color:'var(--nounou)'});}
-    var inv=(state.invites||[]).find(function(e){return k>=e.start&&k<=e.end;});
+    if (nev){var ng=GARDIENS.find(function(x){return x.id===nev.gardien; });evs.push({text:'Congé nounou'+(ng?(' ('+( ng.id==='autres'&&nev.nom?nev.nom:ng.label)+')'):''),color:'var(--nounou)'});}
+    var inv=(state.invites||[]).find(function(e){return k>=e.start&&k<=e.end; });
     if (inv) evs.push({text:inv.name||'Invités',color:'var(--invites)'});
-    var memo=(state.memos||[]).find(function(e){return k>=e.start&&k<=e.end;});
+    var memo=(state.memos||[]).find(function(e){return k>=e.start&&k<=e.end; });
     if (memo) evs.push({text:(memo.time?memo.time+' : ':'')+memo.name,color:'var(--memo)'});
 
     if (evs.length === 0 && k !== todayKey) return;
@@ -3171,8 +3158,7 @@ function renderHomeDashboard() {
       if (d.getFullYear() !== contractYear || d.getMonth() !== cm) return;
       var h = getSpHours(k);
       if (k < todayKey) spRealized += h;
-      else spPlanned += h;
-    });
+      else spPlanned += h; });
   }
   var spTotalProgrammed = spRealized + spPlanned;
   var spToProgram = Math.max(0, 372 - spTotalProgrammed);
@@ -3376,8 +3362,7 @@ function openSpDetailSheet(mode, contractYear) {
   var days = (state.sp.work || []).filter(function(k) {
     var d = parseKey(k);
     if (d.getFullYear() !== contractYear) return false;
-    return mode === 'realized' ? k < todayKey : k >= todayKey;
-  }).sort(function(a, b) {
+    return mode === 'realized' ? k < todayKey : k >= todayKey; }).sort(function(a, b) {
     return mode === 'realized' ? b.localeCompare(a) : a.localeCompare(b); // réalisées = plus récent en premier
   });
 
@@ -3403,7 +3388,7 @@ function openSpDetailSheet(mode, contractYear) {
       return mode === 'realized' ? b.localeCompare(a) : a.localeCompare(b);
     }).forEach(function(mk) {
       var group = byMonth[mk];
-      var monthTotal = group.days.reduce(function(sum, k){ return sum + getSpHours(k); }, 0);
+      var monthTotal = group.days.reduce(function(sum, k){ return sum + getSpHours(k)(k); }, 0);
 
       // Mois header
       var mhdr = document.createElement('div');
@@ -3436,7 +3421,7 @@ function openSpDetailSheet(mode, contractYear) {
     });
 
     // Total
-    var total = days.reduce(function(sum, k){ return sum + getSpHours(k); }, 0);
+    var total = days.reduce(function(sum, k){ return sum + getSpHours(k)(k); }, 0);
     var tot = document.createElement('div');
     tot.style.cssText = 'display:flex;justify-content:space-between;padding:12px 0 4px;margin-top:4px';
     var tl = document.createElement('span');
@@ -3989,7 +3974,7 @@ function toggleEditMode(cal) {
 var belDrag = { active: false, mode: null }; // mode: 'add' | 'remove'
 
 function renderBel() {
-  var { y, m } = state.view.bel;
+  var y = state.view.bel.y, m = state.view.bel.m;
   var lbl = getCalEl('bel-month-label');
   var cal = getCalEl('bel-calendar');
   if (!lbl || !cal) return;
@@ -4001,7 +3986,7 @@ function renderBel() {
   grid.className = 'cal-grid';
   grid.style.userSelect = 'none';
 
-  DAYS_FR.forEach(d => {
+  DAYS_FR.forEach(function(d) {
     var h = document.createElement('div');
     h.className = 'cal-header-cell'; h.textContent = d;
     grid.appendChild(h);
@@ -4009,7 +3994,7 @@ function renderBel() {
 
   var workList = [];
 
-  days.forEach(({ date, key, otherMonth }) => {
+  days.forEach(function(day) { var date = day.date, key = day.key, otherMonth = day.otherMonth;
     var el = document.createElement('div');
     el.className = 'cal-day';
     el.dataset.key = key;
@@ -4361,7 +4346,7 @@ function forceBelDay() {
 }
 
 function changeMonth(cal, dir) {
-  var { y, m } = state.view[cal];
+  var y = state.view[cal].y, m = state.view[cal].m;
   m += dir;
   if (m < 0) { m = 11; y--; }
   if (m > 11) { m = 0; y++; }
@@ -4421,13 +4406,13 @@ function renderGlobalDynamicLegend(y, m) {
   ];
 
   var present = {
-    bel:     (state.bel.work||[]).some(function(k){ var d=parseKey(k); return d>=firstDay&&d<=lastDay; }),
-    sp:      (state.sp.work||[]).some(function(k){ var d=parseKey(k); return d>=firstDay&&d<=lastDay; }),
-    gardes:  (state.gardes||[]).some(function(g){ return parseKey(g.start)<=lastDay&&parseKey(g.end)>=firstDay; }),
-    vac:     (state.vac&&state.vac.events||[]).some(function(e){ return parseKey(e.start)<=lastDay&&parseKey(e.end)>=firstDay; }),
-    nounou:  (state.nounou&&state.nounou.events||[]).some(function(e){ var d=parseKey(e.start); return d>=firstDay&&d<=lastDay; }),
-    invites: (state.invites||[]).some(function(e){ return parseKey(e.start)<=lastDay&&parseKey(e.end)>=firstDay; }),
-    memo:    (state.memos||[]).some(function(e){ var d=parseKey(e.start); return d>=firstDay&&d<=lastDay; }),
+    bel:     (state.bel.work||[]).some(function(k){ var d=parseKey(k); return d>=firstDay&&d<= lastDay; }),
+    sp:      (state.sp.work||[]).some(function(k){ var d=parseKey(k); return d>=firstDay&&d<= lastDay; }),
+    gardes:  (state.gardes||[]).some(function(g){ return parseKey(g.start)<=lastDay&&parseKey(g.end)>= firstDay; }),
+    vac:     (state.vac&&state.vac.events||[]).some(function(e){ return parseKey(e.start)<=lastDay&&parseKey(e.end)>= firstDay; }),
+    nounou:  (state.nounou&&state.nounou.events||[]).some(function(e){ var d=parseKey(e.start); return d>=firstDay&&d<= lastDay; }),
+    invites: (state.invites||[]).some(function(e){ return parseKey(e.start)<=lastDay&&parseKey(e.end)>= firstDay; }),
+    memo:    (state.memos||[]).some(function(e){ var d=parseKey(e.start); return d>=firstDay&&d<= lastDay; }),
   };
 
   LEGEND_TYPES.forEach(function(item) {
@@ -4475,8 +4460,7 @@ function renderGlobalEventsList(y, m) {
 
   // Nounou
   var nounouEvs = (state.nounou && state.nounou.events || []).filter(function(ev) {
-    return parseKey(ev.start) >= firstDay && parseKey(ev.start) <= lastDay;
-  }).sort(function(a,b){ return a.start.localeCompare(b.start); });
+    return parseKey(ev.start) >= firstDay && parseKey(ev.start) <= lastDay; }).sort(function(a,b){ return a.start.localeCompare(b.start); });
   var grouped = [];
   nounouEvs.forEach(function(ev) {
     var g = GARDIENS.find(function(x){ return x.id === ev.gardien; });
@@ -4672,8 +4656,7 @@ function buildConflictHTML(key, msgs) {
     if (parts.length === 2) {
       return '<div style="margin:6px 0"><div style="font-weight:600">' + parts[0] + '</div><div style="font-size:0.88rem;opacity:0.85">' + parts[1] + '</div></div>';
     }
-    return '<div style="margin:4px 0">' + m + '</div>';
-  }).join('');
+    return '<div style="margin:4px 0">' + m + '</div>'; }).join('');
   return '<strong>' + label + '</strong>' + lines;
 }
 
@@ -4766,7 +4749,7 @@ function closeSpTypeModal(e) {
 var spDrag = { active: false, mode: null };
 
 function renderSP() {
-  var { y, m } = state.view.sp;
+  var y = state.view.sp.y, m = state.view.sp.m;
   var cal = getCalEl('sp-calendar');
   if (!cal) return;
   var label = getCalEl('sp-month-label');
@@ -4779,7 +4762,7 @@ function renderSP() {
   grid.className = 'cal-grid';
   grid.style.userSelect = 'none';
 
-  DAYS_FR.forEach(d => {
+  DAYS_FR.forEach(function(d) {
     var h = document.createElement('div');
     h.className = 'cal-header-cell'; h.textContent = d;
     grid.appendChild(h);
@@ -4787,7 +4770,7 @@ function renderSP() {
 
   var workList = [];
 
-  days.forEach(({ date, key, otherMonth }) => {
+  days.forEach(function(day) { var date = day.date, key = day.key, otherMonth = day.otherMonth;
     var el = document.createElement('div');
     el.className = 'cal-day';
     el.dataset.key = key;
@@ -4893,10 +4876,10 @@ function renderWeekCal(mode) {
     var rows = [];
     for (var i = 0; i < days.length; i += 7) rows.push(days.slice(i, i+7));
 
-    rows.forEach(row => {
-      if (row.every(d => d.otherMonth)) return;
+    rows.forEach(function(row) {
+      if (row.every(function(d) { return d.otherMonth; })) return;
 
-      var monday = row.find(d => !d.otherMonth) ? getWeekMonday(row.find(d => !d.otherMonth).date) : null;
+      var monday = row.find(function(d) { return !d.otherMonth; }) ? getWeekMonday(row.find(function(d) { return !d.otherMonth; }).date) : null;
       if (!monday) return;
       var wk = weekKey(monday);
       var isSelected = state[mode].weeks.includes(wk);
@@ -4919,7 +4902,7 @@ function renderWeekCal(mode) {
       dayGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
       dayGrid.style.flex = '1';
 
-      row.forEach(({ date, key, otherMonth }) => {
+      row.forEach(function(day) { var date = day.date, key = day.key, otherMonth = day.otherMonth;
         var el = document.createElement('div');
         el.className = 'cal-day';
         if (otherMonth) el.classList.add('other-month');
@@ -4937,17 +4920,17 @@ function renderWeekCal(mode) {
 
       if (mode === 'garde') {
         // Mouse
-        rowEl.addEventListener('mousedown', e => {
+        rowEl.addEventListener('mousedown', function(e) {
           e.preventDefault();
           gardeDrag.active = true;
           gardeDrag.mode = state.garde.weeks.includes(wk) ? 'remove' : 'add';
           toggleGardeWeek(wk, rowEl, gardeDrag.mode);
         });
-        rowEl.addEventListener('mouseenter', () => {
+        rowEl.addEventListener('mouseenter', function() {
           if (gardeDrag.active) toggleGardeWeek(wk, rowEl, gardeDrag.mode);
         });
         // Touch
-        rowEl.addEventListener('touchstart', e => {
+        rowEl.addEventListener('touchstart', function(e) {
           e.preventDefault();
           gardeDrag.active = true;
           gardeDrag.mode = state.garde.weeks.includes(wk) ? 'remove' : 'add';
@@ -4955,8 +4938,8 @@ function renderWeekCal(mode) {
         }, { passive: false });
       } else {
         // Vac: keep simple click
-        rowEl.addEventListener('click', () => {
-          if (isSelected) state[mode].weeks = state[mode].weeks.filter(w => w !== wk);
+        rowEl.addEventListener('click', function() {
+          if (isSelected) state[mode].weeks = state[mode].weeks.filter(function(w) { return w !== wk; });
           else state[mode].weeks.push(wk);
           saveState();
           renderWeekCal(mode);
@@ -4971,7 +4954,7 @@ function renderWeekCal(mode) {
 
   if (mode === 'garde') {
     // Touch move over weeks
-    container.addEventListener('touchmove', e => {
+    container.addEventListener('touchmove', function(e) {
       if (!gardeDrag.active) return;
       e.preventDefault();
       var touch = e.touches[0];
@@ -4980,11 +4963,11 @@ function renderWeekCal(mode) {
       if (rowEl) toggleGardeWeek(rowEl.dataset.wk, rowEl, gardeDrag.mode);
     }, { passive: false });
 
-    container.addEventListener('touchend', () => {
+    container.addEventListener('touchend', function() {
       if (gardeDrag.active) { gardeDrag.active = false; saveState(); renderWeekCal('garde'); }
     });
 
-    document.addEventListener('mouseup', () => {
+    document.addEventListener('mouseup', function() {
       if (gardeDrag.active) { gardeDrag.active = false; saveState(); renderWeekCal('garde'); }
     }, { once: true });
   }
@@ -4998,7 +4981,7 @@ function toggleGardeWeek(wk, rowEl, mode) {
     state.garde.weeks.push(wk);
     if (rowEl) rowEl.classList.add('selected-week');
   } else if (mode === 'remove' && already) {
-    state.garde.weeks = state.garde.weeks.filter(w => w !== wk);
+    state.garde.weeks = state.garde.weeks.filter(function(w) { return w !== wk; });
     if (rowEl) rowEl.classList.remove('selected-week');
   }
 }
@@ -5011,7 +4994,7 @@ function renderWeeksList(mode) {
     listEl.innerHTML = '<div class="dispo-empty">Aucune semaine sélectionnée</div>';
     return;
   }
-  weeks.forEach(wk => {
+  weeks.forEach(function(wk) {
     var mon = parseKey(wk);
     var sun = new Date(mon); sun.setDate(mon.getDate()+6);
     var item = document.createElement('div');
@@ -5021,9 +5004,9 @@ function renderWeeksList(mode) {
     var rm = document.createElement('button');
     rm.className = 'sw-remove';
     rm.textContent = '×';
-    rm.onclick = (e) => {
+    rm.onclick = function(e) {
       e.stopPropagation();
-      state[mode].weeks = state[mode].weeks.filter(w => w !== wk);
+      state[mode].weeks = state[mode].weeks.filter(function(w) { return w !== wk; });
       saveState();
       renderWeekCal(mode);
     };
@@ -5057,7 +5040,7 @@ function goToToday() {
 }
 
 function changeGlobalMonth(dir) {
-  var { y, m } = state.view.global;
+  var y = state.view.global.y, m = state.view.global.m;
   m += dir;
   if (m < 0)  { m = 11; y--; }
   if (m > 11) { m = 0;  y++; }
@@ -5114,7 +5097,7 @@ function dayMatchesFilter(info) {
 // ═══════════════════════════════════════════════════
 function renderGlobal() {
   if (!state.nounou) state.nounou = { events: [] };
-  var { y, m } = state.view.global;
+  var y = state.view.global.y, m = state.view.global.m;
   document.getElementById('global-month-label').textContent = MONTHS_FR[m] + ' ' + y;
 
   var cal = document.getElementById('global-big-cal');
@@ -5130,7 +5113,7 @@ function renderGlobal() {
   grid.id = 'global-big-grid-inner';
 
   // Headers
-  DAYS_FR.forEach(d => {
+  DAYS_FR.forEach(function(d) {
     var h = document.createElement('div');
     h.className = 'global-big-header'; h.textContent = d;
     grid.appendChild(h);
@@ -5143,7 +5126,7 @@ function renderGlobal() {
   var cellIndex = {}; // key -> cell position (0-based among all cells incl headers=7)
   var pos = 0;
 
-  days.forEach(({ date, key, otherMonth }) => {
+  days.forEach(function(day) { var date = day.date, key = day.key, otherMonth = day.otherMonth;
     var el = document.createElement('div');
     el.className = 'global-big-day';
     el.dataset.gridpos = pos + 7; // +7 for header row
@@ -5162,7 +5145,7 @@ function renderGlobal() {
     var isVac     = isDateInVacEvents(key);
     var isNounou  = isDateInNounou(key);
     var isNounouEd = isNounouEdouard(key);
-    var isGardeMed = (state.gardes || []).some(g => key >= g.start && key <= g.end);
+    var isGardeMed = (state.gardes || []).some(function(g) { return key >= g.start && key <= g.end; });
     var hasInvite = (state.invites || []).some(function(e){ return key >= e.start && key <= e.end; });
     var hasMemo   = (state.memos || []).some(function(e){ return key >= e.start && key <= e.end; });
     var isDispoSP = !isBelWork && !isSpWork && !isVac && !isNounouEd && !isGardeMed;
@@ -5183,7 +5166,7 @@ function renderGlobal() {
     // ── Priorité 2 : Garde ──
     else if (isGardeMed && !nounouOnly) {
       el.classList.add('g-gardes');
-      var g = (state.gardes || []).find(g => key >= g.start && key <= g.end);
+      var g = (state.gardes || []).find(function(g) { return key >= g.start && key <= g.end; });
       label = '';
     }
     // ── Priorité 3 : Édouard (fond rose foncé) ──
@@ -5225,7 +5208,7 @@ function renderGlobal() {
 
     // BEL/SP initiales sous le chiffre pour les gardes
     if (isGardeMed && !nounouOnly) {
-      var gd = (state.gardes || []).find(g => key >= g.start && key <= g.end);
+      var gd = (state.gardes || []).find(function(g) { return key >= g.start && key <= g.end; });
       if (gd && gd.lieu) {
         var gardeInitial = document.createElement('div');
         gardeInitial.style.cssText = 'font-size:0.6rem;font-weight:700;color:#fff;letter-spacing:0.05em;text-align:center;width:100%';
@@ -5292,14 +5275,14 @@ function renderGlobal() {
 
   // ── Draw vac bandeaux AFTER grid is in DOM ──
   // We need the grid rendered first to measure cell positions
-  requestAnimationFrame(() => {
+  requestAnimationFrame(function() {
     var gridEl = document.getElementById('global-big-grid-inner');
     if (!gridEl) return;
 
     var firstDay = new Date(y, m, 1);
     var lastDay  = new Date(y, m+1, 0);
 
-    vacEvents.forEach(ev => {
+    vacEvents.forEach(function(ev) {
       var evStart = parseKey(ev.start);
       var evEnd   = parseKey(ev.end);
 
@@ -5366,21 +5349,18 @@ function renderGlobal() {
   wrap.ontouchstart = function(e) {
     _gSwipeX = e.touches[0].clientX;
     _gSwipeY = e.touches[0].clientY;
-    _gMoved = false;
-  };
+    _gMoved = false; };
   wrap.addEventListener('touchmove', function(e) {
     if (_gSwipeX === null) return;
     var dx = Math.abs(e.touches[0].clientX - _gSwipeX);
     var dy = Math.abs(e.touches[0].clientY - _gSwipeY);
-    if (dx > 25 || dy > 25) _gMoved = true;
-  }, { passive: true });
+    if (dx > 25 || dy > 25) _gMoved = true; }, { passive: true });
   wrap.ontouchend = function(e) {
     if (_gSwipeX === null) return;
     if (!_gMoved) { _gSwipeX = null; return; } // tap — var cell handle it
     var dx = e.changedTouches[0].clientX - _gSwipeX;
     if (Math.abs(dx) > 60) changeGlobalMonth(dx < 0 ? 1 : -1);
-    _gSwipeX = null; _gMoved = false;
-  };
+    _gSwipeX = null; _gMoved = false; };
 }
 
 // ── Swipe helper ──
@@ -5399,8 +5379,7 @@ function addSwipe(elementId, onLeft, onRight) {
     // Ignore si mouvement principalement vertical ou trop court
     if (Math.abs(dy) > Math.abs(dx) * 0.6) { startX = null; return; }
     if (Math.abs(dx) > 70) { dx < 0 ? onLeft() : onRight(); }
-    startX = null;
-  }, { passive: true });
+    startX = null; }, { passive: true });
 }
 
 // ═══════════════════════════════════════════════════
@@ -5427,14 +5406,14 @@ function renderRangePicker(id) {
 
   var grid = document.getElementById(id + '-grid');
 
-  DAYS_FR.forEach(d => {
+  DAYS_FR.forEach(function(d) {
     var h = document.createElement('div');
     h.className = 'rp-header'; h.textContent = d;
     grid.appendChild(h);
   });
 
   var days = buildMonthDays(y, m);
-  days.forEach(({ date, key, otherMonth }) => {
+  days.forEach(function(day) { var date = day.date, key = day.key, otherMonth = day.otherMonth;
     var el2 = document.createElement('div');
     el2.className = 'rp-day' + (otherMonth ? ' empty' : '');
 
@@ -5451,15 +5430,14 @@ function renderRangePicker(id) {
       if (inRange) { el2.classList.add('rp-in-range'); el2.style.background = colDim; }
 
       // Hover preview
-      el2.addEventListener('mouseenter', () => {
+      el2.addEventListener('mouseenter', function() {
         if (start && !end) {
           // preview range
-          document.querySelectorAll('#' + id + '-grid .rp-day').forEach(d2 => {
+          document.querySelectorAll('#' + id + '-grid .rp-day').forEach(function(d2) {
             d2.classList.remove('rp-in-range');
-            d2.style.background = '';
-          });
+            d2.style.background = ''; });
           var hoverKey = key;
-          document.querySelectorAll('#' + id + '-grid .rp-day').forEach((d2, i) => {
+          document.querySelectorAll('#' + id + '-grid .rp-day').forEach(function(d2, i) {
             var dk = d2.dataset.key;
             if (!dk) return;
             if (dk === start) { d2.style.background = col; }
@@ -5471,7 +5449,7 @@ function renderRangePicker(id) {
       });
 
       el2.dataset.key = key;
-      el2.addEventListener('click', () => rpClick(id, key));
+      el2.addEventListener('click', function() { rpClick(id, key); });
     }
 
     grid.appendChild(el2);
@@ -5482,8 +5460,7 @@ function rpClick(id, key) {
   var rp = rangePickers[id];
   if (!rp.start || (rp.start && rp.end)) {
     // Start fresh
-    rp.start = key; rp.end = null;
-  } else {
+    rp.start = key; rp.end = null; } else {
     // Set end (ensure order)
     if (key < rp.start) { rp.end = rp.start; rp.start = key; }
     else { rp.end = key; }
@@ -5570,14 +5547,12 @@ function addVacEvent() {
 
 function cancelVacInlineConflict() {
   document.getElementById('vac-conflict-inline').style.display = 'none';
-  _vacInlinePending = null;
-}
+  _vacInlinePending = null; }
 
 function forceVacInline() {
   if (!_vacInlinePending) return;
   doAddVacEvent(_vacInlinePending.name, _vacInlinePending.start, _vacInlinePending.end);
-  _vacInlinePending = null;
-}
+  _vacInlinePending = null; }
 
 function doAddVacEvent(name, start, end) {
   if (!state.vac.events) state.vac.events = [];
@@ -5597,7 +5572,7 @@ function showErr(el, msg) {
 }
 
 function deleteVacEvent(id) {
-  state.vac.events = (state.vac.events || []).filter(e => e.id !== id);
+  state.vac.events = (state.vac.events || []).filter(function(e) { return e.id !== id; });
   saveState();
   renderVacEvents();
 }
@@ -5699,7 +5674,7 @@ function addInvite() {
 }
 
 function deleteInvite(id) {
-  state.invites = (state.invites || []).filter(e => e.id !== id);
+  state.invites = (state.invites || []).filter(function(e) { return e.id !== id; });
   saveState();
   renderInvites();
 }
@@ -5949,8 +5924,7 @@ function openDaySummary(key, info) {
             opt2.textContent = String(mv).padStart(2,'0');
             if (f.value) {
               var cur_m = parseInt(f.value.split(':')[1]||'0');
-              if (Math.round(cur_m/15)*15%60 === mv) opt2.selected = true;
-            }
+              if (Math.round(cur_m/15)*15%60 === mv) opt2.selected = true; }
             sel_m.appendChild(opt2);
           });
           sel_m.style.cssText = 'flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:0.9rem;font-weight:600;outline:none;cursor:pointer';
@@ -6307,8 +6281,7 @@ function closeDayMenu() {
     menu.addEventListener('touchstart', function(e) {
       startY = e.touches[0].clientY;
       startScrollTop = menu.scrollTop;
-      dragging = false;
-    }, { passive: true });
+      dragging = false; }, { passive: true });
     menu.addEventListener('touchmove', function(e) {
       var dy = e.touches[0].clientY - startY;
       if (dy > 0 && menu.scrollTop <= 0) {
@@ -6326,8 +6299,7 @@ function closeDayMenu() {
       } else {
         menu.style.transform = '';
       }
-      dragging = false;
-    }, { passive: true });
+      dragging = false; }, { passive: true });
   });
 })();
 
@@ -6339,8 +6311,7 @@ function closeDayMenu() {
     if (!sheet) return;
     sheet.addEventListener('touchstart', function(e) {
       startY = e.touches[0].clientY;
-      dragging = false;
-    }, { passive: true });
+      dragging = false; }, { passive: true });
     sheet.addEventListener('touchmove', function(e) {
       var dy = e.touches[0].clientY - startY;
       if (dy > 0 && sheet.scrollTop <= 0) {
@@ -6359,8 +6330,7 @@ function closeDayMenu() {
       } else {
         sheet.style.transform = 'translateY(0)';
       }
-      dragging = false;
-    }, { passive: true });
+      dragging = false; }, { passive: true });
   });
 })();
 
@@ -6712,7 +6682,7 @@ function removeGardeFromModal() {
 function addGardeUnified() {} // kept for compatibility
 
 function deleteGarde(id) {
-  state.gardes = (state.gardes || []).filter(g => g.id !== id);
+  state.gardes = (state.gardes || []).filter(function(g) { return g.id !== id; });
   saveState();
   renderGardes();
   renderGardesCalendar();
@@ -6887,7 +6857,7 @@ function importData() {
     var parsed;
     // Try base64 decode
     try {
-      var decoded = decodeURIComponent(atob(raw).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+      var decoded = decodeURIComponent(atob(raw).split('').map(function(c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join(''));
       parsed = JSON.parse(decoded);
     } catch(e1) {
       // Try simple atob without URI decode
@@ -6948,8 +6918,8 @@ var modalType = 'bel';
 
 function openQuickModal() {
   // Pre-fill start date to current viewed month
-  var { y, m } = state.view.global;
-  var pad = n => String(n).padStart(2,'0');
+  var y = state.view.global.y, m = state.view.global.m;
+  var pad = function(n) { return String(n).padStart(2,'0'); };
   document.getElementById('modal-name').value = '';
   document.getElementById('modal-error').style.display = 'none';
   selectModalType('bel');
@@ -6971,7 +6941,7 @@ function closeQuickModal(e) {
 
 function selectModalType(type) {
   modalType = type;
-  document.querySelectorAll('.modal-type-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.modal-type-btn').forEach(function(b) { b.classList.remove('active'); });
   document.querySelector('.modal-type-btn[data-type="' + type + '"]').classList.add('active');
   document.getElementById('modal-name-field').style.display = (type === 'vac' || type === 'invites' || type === 'gardes' || type === 'memo') ? 'flex' : 'none';
   var modalLabel = document.getElementById('modal-name-label');
@@ -7278,8 +7248,7 @@ function addNounouFromForm() {
   document.getElementById('nounou-form-nom-wrap').style.display = 'none';
   var list = document.getElementById('nounou-form-gardien-list');
   list.querySelectorAll('.sp-type-item').forEach(function(el){ el.classList.remove('selected'); });
-  _nounouFormGardien = null; _nounouFormNom = null;
-}
+  _nounouFormGardien = null; _nounouFormNom = null; }
 
 function openNounouDetailSheet(mode, y, m) {
   var menu     = document.getElementById('day-menu');
@@ -7300,8 +7269,7 @@ function openNounouDetailSheet(mode, y, m) {
   if (mode === 'conges') {
     var congesDays = (state.nounou && state.nounou.events || []).filter(function(ev) {
       var s = parseKey(ev.start);
-      return s >= firstDay && s <= lastDay && s.getDay() !== 0 && s.getDay() !== 6;
-    }).sort(function(a,b){ return a.start.localeCompare(b.start); });
+      return s >= firstDay && s <= lastDay && s.getDay() !== 0 && s.getDay() !== 6; }).sort(function(a,b){ return a.start.localeCompare(b.start); });
 
     if (congesDays.length === 0) {
       var empty = document.createElement('div');
@@ -7534,8 +7502,7 @@ function saveNounouRange(start, end, gardienId, nom) {
       return c.msgs.map(function(m) {
         var parts = m.split('\n');
         if (parts.length === 2) return '<b>' + dateLabel + '</b><br>' + parts[0] + '<br><em>' + parts[1] + '</em>';
-        return '<b>' + dateLabel + '</b> : ' + m;
-      }).join('<br>');
+        return '<b>' + dateLabel + '</b> : ' + m; }).join('<br>');
     });
     document.getElementById('nounou-conflict-text').innerHTML = '⚠️ Conflits :<br>' + lines.join('<br>');
     document.getElementById('nounou-conflict-warn').style.display = 'block';
@@ -7549,8 +7516,7 @@ function saveNounouRange(start, end, gardienId, nom) {
 function cancelNounouConflict() {
   var w = document.getElementById('nounou-conflict-warn');
   if (w) w.style.display = 'none';
-  window._nounouPendingSave = null;
-}
+  window._nounouPendingSave = null; }
 
 function forceNounouRange() {
   var p = window._nounouPendingSave;
@@ -7558,8 +7524,7 @@ function forceNounouRange() {
   var w = document.getElementById('nounou-conflict-warn');
   if (w) w.style.display = 'none';
   doSaveNounouRange(p.start, p.end, p.gardienId, p.nom);
-  window._nounouPendingSave = null;
-}
+  window._nounouPendingSave = null; }
 
 function doSaveNounouRange(start, end, gardienId, nom) {
   if (!state.nounou) state.nounou = { events: [] };
@@ -7649,8 +7614,7 @@ function buildGardienChoices(list, currentGardien) {
       var sel = el.dataset.gardien === gid;
       el.style.borderColor = sel ? 'var(--nounou)' : 'var(--border)';
       el.style.background  = sel ? 'var(--nounou-dim)' : 'transparent';
-      el.style.color       = sel ? 'var(--nounou)' : 'var(--text)';
-    });
+      el.style.color       = sel ? 'var(--nounou)' : 'var(--text)'; });
     if (gid === 'autres') {
       var existing = document.getElementById('nounou-nom-field');
       if (!existing) {
@@ -7669,8 +7633,7 @@ function buildGardienChoices(list, currentGardien) {
     } else {
       var old = document.getElementById('nounou-nom-field');
       if (old) old.remove();
-      nounouSelectedNom = null;
-    }
+      nounouSelectedNom = null; }
     nounouSelectedGardien = gid;
   }
 
@@ -8573,8 +8536,7 @@ function closeSidebar() {
       var dx = e.changedTouches[0].clientX - startX;
       if (dx > 80) closeSidebar();
       else sidebar.style.transform = '';
-      dragging = false;
-    }, { passive: true });
+      dragging = false; }, { passive: true });
   });
 })();
 
@@ -8640,8 +8602,7 @@ function renderDedSp() {
   (state.sp.work||[]).forEach(function(k) {
     if (parseKey(k).getFullYear() !== y) return;
     var h = getSpHours(k);
-    if (k < todayKey) spRealized += h; else spPlanned += h;
-  });
+    if (k < todayKey) spRealized += h; else spPlanned += h; });
   var spToProgram = Math.max(0, 372 - spRealized - spPlanned);
 
   var statsBar = document.createElement('div');
@@ -8665,7 +8626,7 @@ function renderDedSp() {
   }
 
   var cy = today.getFullYear();
-  statsBar.appendChild(stat(spRealized, 'Réalisées', 'var(--sp)', function(){ openSpDetailSheet('realized', cy); }));
+  statsBar.appendChild(stat(spRealized, 'Réalisées', 'var(--sp)', function(){ openSpDetailSheet('realized', cy); }))
   statsBar.appendChild(sep());
   statsBar.appendChild(stat(spPlanned, 'Programmées', spPlanned > 0 ? 'rgba(212,58,0,0.6)' : 'var(--muted)', function(){ openSpDetailSheet('planned', cy); }));
   statsBar.appendChild(sep());
@@ -8763,24 +8724,9 @@ try {
   }
 
   // Swipe sur les wrappers stables (une seule fois)
-  addSwipe('bel-wrapper',           function(){ changeMonth('bel',1); },  function(){ changeMonth('bel',-1); });
+  addSwipe('bel-wrapper',           function(){ changeMonth('bel',1); },  function(){ changeMonth('bel',-1); })
   addSwipe('bel-wrapper-ded',       function(){ changeMonth('bel',1); },  function(){ changeMonth('bel',-1); });
   addSwipe('sp-wrapper',            function(){ changeMonth('sp',1); },   function(){ changeMonth('sp',-1); });
   addSwipe('sp-wrapper-ded',        function(){ changeMonth('sp',1); },   function(){ changeMonth('sp',-1); });
   addSwipe('subtab-gardes-content', function(){ changeGardesMonth(1); },  function(){ changeGardesMonth(-1); });
-  addSwipe('subtab-garde-content',  function(){ changeNounouMonth(1); },  function(){ changeNounouMonth(-1); });
-
-  pullFromCloud(function(updated) {
-    if (updated) {
-      if (!state.bel.work) state.bel.work = [];
-      if (!state.vac.events) state.vac.events = [];
-      if (!state.invites) state.invites = [];
-      if (!state.gardes) state.gardes = [];
-      if (!state.view.global) state.view.global = { y: today.getFullYear(), m: today.getMonth() };
-      renderHomeRecap();
-      renderGlobal();
-    }
-  });
-  setTimeout(startRealtimeSync, 500);
-} catch(e) {
-  document.body.innerHTML = '<div style="padding:40px;color:#333;font-family:sans-serif;background:#eef0f5;min-height:100vh"><h2 style="color:#d43a00">Erreur au chargement</h2><p style="
+  addSwipe('subtab-garde-content',  function()
