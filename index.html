@@ -2004,7 +2004,7 @@
 //  UTILS (définis en premier)
 // ═══════════════════════════════════════════════════
 function dateKey(d) {
-  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  return d.getFullYear() + '-' + String(d.getMonth()+1) + '-' + String(d.getDate());
 }
 
 // Returns the active calendar element — checks -ded variant first (dedicated page), falls back to base ID
@@ -2095,8 +2095,8 @@ function renderConflitsBadgeOnly() {
     var k = dateKey(cur);
     var evs = [];
     var garde = (state.gardes||[]).find(function(g){ return k>=g.start&&k<=g.end; });
-    if ((state.bel.work||[]).includes(k)&&!(garde&&garde.lieu==='bel')) evs.push({type:'bel'});
-    if ((state.sp.work||[]).includes(k)&&!(garde&&garde.lieu==='sp'))   evs.push({type:'sp'});
+    if ((state.bel.work||[]).indexOf(k) !== -1&&!(garde&&garde.lieu==='bel')) evs.push({type:'bel'});
+    if ((state.sp.work||[]).indexOf(k) !== -1&&!(garde&&garde.lieu==='sp'))   evs.push({type:'sp'});
     if (garde) evs.push({type:'garde'});
     var dow = cur.getDay();
     if (dow===6){var dk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+1));if((state.gardes||[]).some(function(g){return dk>=g.start&&dk<=g.end; })&&!garde)evs.push({type:'info'});}
@@ -2414,8 +2414,8 @@ function saveChangeDay() {
 
   // Check conflicts — including same type on the new day
   var msgs = [];
-  var isBel   = (state.bel.work || []).includes(newKey);
-  var isSP    = (state.sp.work  || []).includes(newKey);
+  var isBel   = (state.bel.work || []).indexOf(newKey) !== -1;
+  var isSP    = (state.sp.work  || []).indexOf(newKey) !== -1;
   var isGarde = (state.gardes   || []).some(function(g){ return newKey >= g.start && newKey <= g.end; });
   var isVac   = isDateInVacEvents(newKey);
   var isNou   = isNounouEdouard(newKey);
@@ -2475,10 +2475,10 @@ function applyChangeDay(newKey) {
   var ctx = _changeDayCtx;
   if (ctx.type === 'bel') {
     state.bel.work = (state.bel.work || []).filter(function(k){ return k !== ctx.oldKey; });
-    if (!state.bel.work.includes(newKey)) state.bel.work.push(newKey);
+    if (!(state.bel.work.indexOf(newKey) !== -1)) state.bel.work.push(newKey);
   } else if (ctx.type === 'sp') {
     state.sp.work = (state.sp.work || []).filter(function(k){ return k !== ctx.oldKey; });
-    if (!state.sp.work.includes(newKey)) state.sp.work.push(newKey);
+    if (!(state.sp.work.indexOf(newKey) !== -1)) state.sp.work.push(newKey);
   } else if (ctx.type === 'garde') {
     state.gardes = (state.gardes || []).filter(function(g){ return !(ctx.oldKey >= g.start && ctx.oldKey <= g.end); });
     state.gardes.push({ id: Date.now().toString(), lieu: ctx.lieu || 'bel', note: '', start: newKey, end: newKey });
@@ -2501,7 +2501,7 @@ function openChangeMemoDateModal(memoEv) {
   var m = document.getElementById('memo-edit-time-m');
   if (h) h.value = parts[0] || '08';
   // round minutes to nearest 15
-  if (m) { var min = parseInt(parts[1]||'0'); m.value = String(Math.round(min/15)*15%60).padStart(2,'0'); }
+  if (m) { var min = parseInt(parts[1]||'0'); m.value = String(Math.round(min/15)*15%60); }
   document.getElementById('memo-edit-modal-overlay').classList.add('open');
 }
 
@@ -2778,12 +2778,12 @@ function confirmAddSheet() {
 
 function doAddSheetBel(d) {
   if(!state.bel.work)state.bel.work=[];
-  if(!state.bel.work.includes(d))state.bel.work.push(d);
+  if(!(state.bel.work.indexOf(d) !== -1))state.bel.work.push(d);
   saveState(); renderBel(); renderGlobal(); closeAddSheet();
 }
 function doAddSheetSP(d,spType) {
   if(!state.sp.work)state.sp.work=[];
-  if(!state.sp.work.includes(d))state.sp.work.push(d);
+  if(!(state.sp.work.indexOf(d) !== -1))state.sp.work.push(d);
   if(!state.sp.types)state.sp.types={};
   state.sp.types[d]=spType;
   if(spType==='jn'){
@@ -2903,13 +2903,13 @@ function doSaveVacQuick(name, start, end) {
 function detectDayConflicts(key, evs) {
   var msgs = [];
   var types = evs.map(function(e){ return e.type; });
-  var hasPro = types.includes('bel') || types.includes('sp') || types.includes('garde');
+  var hasPro = (types.indexOf('bel') !== -1) || (types.indexOf('sp') !== -1) || (types.indexOf('garde') !== -1);
   var hasNounouEd = evs.some(function(e){ return e.type === 'nounou' && e.isEdouard; });
-  var hasVac = types.includes('vac');
-  var hasBel = types.includes('bel');
-  var hasSP = types.includes('sp');
-  var hasGarde = types.includes('garde');
-  var hasAstreinte = types.includes('info'); // astreinte weekend
+  var hasVac = (types.indexOf('vac') !== -1);
+  var hasBel = (types.indexOf('bel') !== -1);
+  var hasSP = (types.indexOf('sp') !== -1);
+  var hasGarde = (types.indexOf('garde') !== -1);
+  var hasAstreinte = (types.indexOf('info') !== -1); // astreinte weekend
 
   if (hasBel && hasSP) msgs.push('Belharra et St Palais le même jour');
   if (hasPro && hasVac) {
@@ -2993,8 +2993,8 @@ function renderConflitsList() {
     var evs = [];
     var garde = (state.gardes||[]).find(function(g){ return k>=g.start&&k<=g.end; });
     var isGardeBel = garde && garde.lieu==='bel', isGardeSp = garde && garde.lieu==='sp';
-    if ((state.bel.work||[]).includes(k) && !isGardeBel) evs.push({type:'bel'});
-    if ((state.sp.work||[]).includes(k) && !isGardeSp)  evs.push({type:'sp'});
+    if ((state.bel.work||[]).indexOf(k) !== -1 && !isGardeBel) evs.push({type:'bel'});
+    if ((state.sp.work||[]).indexOf(k) !== -1 && !isGardeSp)  evs.push({type:'sp'});
     if (garde) evs.push({type:'garde'});
     var dow = cur.getDay();
     if (dow===6){ var dk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+1)); if((state.gardes||[]).some(function(g){return dk>=g.start&&dk<=g.end; })&&!garde) evs.push({type:'info'}); }
@@ -3034,8 +3034,8 @@ function renderConflitsList() {
     // Long press → open day summary/modify menu
     var pt;
     (function(key, date) {
-      var isBelW  = (state.bel.work||[]).includes(key);
-      var isSpW   = (state.sp.work||[]).includes(key);
+      var isBelW  = (state.bel.work||[]).indexOf(key) !== -1;
+      var isSpW   = (state.sp.work||[]).indexOf(key) !== -1;
       var isVac   = isDateInVacEvents(key);
       var isNou   = isDateInNounou(key);
       var isNouEd = isNounouEdouard(key);
@@ -3045,8 +3045,8 @@ function renderConflitsList() {
         // Recalculate from current state at press time
         var garde2 = (state.gardes||[]).some(function(g){return key>=g.start&&key<=g.end; });
         openDaySummary(key, {
-          isBelWork:    (state.bel.work||[]).includes(key),
-          isSpWork:     (state.sp.work||[]).includes(key),
+          isBelWork:    (state.bel.work||[]).indexOf(key) !== -1,
+          isSpWork:     (state.sp.work||[]).indexOf(key) !== -1,
           isVac:        isDateInVacEvents(key),
           isNounou:     isDateInNounou(key),
           isNounouEd:   isNounouEdouard(key),
@@ -3086,8 +3086,8 @@ function renderTodayTomorrow() {
     var garde = (state.gardes||[]).find(function(g){return k>=g.start&&k<=g.end; });
     var isGBel = garde&&garde.lieu==='bel', isGSp = garde&&garde.lieu==='sp';
     var evs = [];
-    if ((state.bel.work||[]).includes(k)&&!isGBel) evs.push({text:'Belharra',color:'var(--bel)'});
-    if ((state.sp.work||[]).includes(k)&&!isGSp) evs.push({text:'St Palais ('+getSpHours(k)+'h)',color:'#ff8c00'});
+    if ((state.bel.work||[]).indexOf(k) !== -1&&!isGBel) evs.push({text:'Belharra',color:'var(--bel)'});
+    if ((state.sp.work||[]).indexOf(k) !== -1&&!isGSp) evs.push({text:'St Palais ('+getSpHours(k)+'h)',color:'#ff8c00'});
     if (garde) evs.push({text:'Garde '+(garde.lieu==='bel'?'Belharra':'St Palais'),color:'var(--gardes)'});
     var vac=(state.vac&&state.vac.events||[]).find(function(e){return k>=e.start&&k<=e.end; });
     if (vac) evs.push({text:vac.name||'Vacances',color:'var(--vac)'});
@@ -3312,7 +3312,7 @@ function openSpDetailSheet(mode, contractYear) {
       // Group by month
       var byMonth2 = {};
       disposList.forEach(function(d) {
-        var mk = d.getFullYear() + '-' + String(d.getMonth()).padStart(2,'0');
+        var mk = d.getFullYear() + '-' + String(d.getMonth());
         if (!byMonth2[mk]) byMonth2[mk] = { label: MONTHS_FR[d.getMonth()] + ' ' + d.getFullYear(), y: d.getFullYear(), m: d.getMonth(), days: [] };
         byMonth2[mk].days.push(d);
       });
@@ -3694,10 +3694,10 @@ function renderHomeRecap_into(el) {
       var isGardeBel = garde && garde.lieu === 'bel';
       var isGardeSp  = garde && garde.lieu === 'sp';
 
-      if ((state.bel.work || []).includes(k) && !isGardeBel) {
+      if ((state.bel.work || []).indexOf(k) !== -1 && !isGardeBel) {
         evs.push({ text: 'Belharra', color: 'var(--bel)', type: 'bel' });
       }
-      if ((state.sp.work || []).includes(k) && !isGardeSp) {
+      if ((state.sp.work || []).indexOf(k) !== -1 && !isGardeSp) {
         var spH = getSpHours(k);
         evs.push({ text: 'St Palais (' + spH + 'h)', color: '#ff8c00', type: 'sp' });
       }
@@ -4002,7 +4002,7 @@ function renderBel() {
     if (key === todayKey) el.classList.add('today');
     if (key < todayKey && !otherMonth) el.classList.add('past-day');
 
-    var isWork = (state.bel.work || []).includes(key);
+    var isWork = (state.bel.work || []).indexOf(key) !== -1;
     var isGarde = (state.gardes || []).some(function(g){ return key >= g.start && key <= g.end && g.lieu === 'bel'; });
     if (!otherMonth) {
       if (isGarde) {
@@ -4044,8 +4044,8 @@ function renderBel() {
 // ═══════════════════════════════════════════════════
 function checkConflict(key, skipType) {
   var msgs = [];
-  var isBel   = skipType !== 'bel'  && (state.bel.work || []).includes(key);
-  var isSP    = skipType !== 'sp'   && (state.sp.work  || []).includes(key);
+  var isBel   = skipType !== 'bel'  && (state.bel.work || []).indexOf(key) !== -1;
+  var isSP    = skipType !== 'sp'   && (state.sp.work  || []).indexOf(key) !== -1;
   var isGarde = skipType !== 'garde'&& (state.gardes   || []).some(function(g){ return key >= g.start && key <= g.end; });
   var isVac   = skipType !== 'vac'  && isDateInVacEvents(key);
   var isNou   = skipType !== 'nounou' && isNounouEdouard(key);
@@ -4186,7 +4186,7 @@ function openBelTypeModal(key) {
   document.getElementById('bel-range-end').value = key;
 
   // Check existing for remove button
-  var isWork = (state.bel.work||[]).includes(key);
+  var isWork = (state.bel.work||[]).indexOf(key) !== -1;
   var isGarde = (state.gardes||[]).some(function(g){ return key>=g.start&&key<=g.end&&g.lieu==='bel'; });
   var existingType = isGarde ? 'garde' : 'normal';
   belSelectedType = existingType;
@@ -4243,7 +4243,7 @@ function confirmBelRange() {
     var k = dateKey(cur);
     var dow = cur.getDay();
     if (dow !== 0 && dow !== 6) { // skip weekends
-      if (!state.bel.work.includes(k)) state.bel.work.push(k);
+      if (!(state.bel.work.indexOf(k) !== -1)) state.bel.work.push(k);
     }
     cur.setDate(cur.getDate() + 1);
   }
@@ -4290,11 +4290,11 @@ function applyBelType(key, type) {
   // Remove existing garde BEL on this day
   state.gardes = (state.gardes||[]).filter(function(g){ return !(key>=g.start&&key<=g.end&&g.lieu==='bel'); });
   if (type === 'garde') {
-    if (!state.bel.work.includes(key)) state.bel.work.push(key);
+    if (!(state.bel.work.indexOf(key) !== -1)) state.bel.work.push(key);
     if (!state.gardes) state.gardes = [];
     state.gardes.push({ id: Date.now().toString(), lieu: 'bel', note: '', start: key, end: key });
   } else {
-    if (!state.bel.work.includes(key)) state.bel.work.push(key);
+    if (!(state.bel.work.indexOf(key) !== -1)) state.bel.work.push(key);
   }
   saveState();
   closeBelTypeModal();
@@ -4606,7 +4606,7 @@ function openSpTypeModal(key) {
   var list = document.getElementById('sp-type-list');
   list.innerHTML = '';
   var currentType = (state.sp.types || {})[key];
-  var isWork = (state.sp.work || []).includes(key);
+  var isWork = (state.sp.work || []).indexOf(key) !== -1;
 
   SP_TYPES.forEach(function(t) {
     var item = document.createElement('div');
@@ -4664,7 +4664,7 @@ function confirmSpType() {
   if (!spSelectedType) spSelectedType = SP_TYPES[0].id;
   if (!spTypeModalKey) return;
   if (!state.sp.work) state.sp.work = [];
-  var isNew = !state.sp.work.includes(spTypeModalKey);
+  var isNew = !(state.sp.work.indexOf(spTypeModalKey) !== -1);
   if (isNew) {
     var msgs = checkConflict(spTypeModalKey, 'sp');
     if (msgs.length > 0) {
@@ -4695,7 +4695,7 @@ function forceSpType() {
 
   if (spSelectedType === 'jn') {
     // Garde SP : add to gardes, keep in sp.work for hours tracking
-    if (!state.sp.work.includes(spTypeModalKey)) state.sp.work.push(spTypeModalKey);
+    if (!(state.sp.work.indexOf(spTypeModalKey) !== -1)) state.sp.work.push(spTypeModalKey);
     state.sp.types[spTypeModalKey] = spSelectedType;
     if (!state.gardes) state.gardes = [];
     // Remove existing garde on this day first
@@ -4704,7 +4704,7 @@ function forceSpType() {
   } else {
     // Normal SP day — remove from gardes if it was a garde before
     state.gardes = (state.gardes || []).filter(function(g){ return !(spTypeModalKey >= g.start && spTypeModalKey <= g.end && g.lieu === 'sp'); });
-    if (!state.sp.work.includes(spTypeModalKey)) state.sp.work.push(spTypeModalKey);
+    if (!(state.sp.work.indexOf(spTypeModalKey) !== -1)) state.sp.work.push(spTypeModalKey);
     state.sp.types[spTypeModalKey] = spSelectedType;
   }
 
@@ -4779,10 +4779,10 @@ function renderSP() {
     if (key === todayKey) el.classList.add('today');
     if (key < todayKey && !otherMonth) el.classList.add('past-day');
 
-    var isWork = state.sp.work.includes(key);
+    var isWork = (state.sp.work.indexOf(key) !== -1);
 
     // Calcul des blocages
-    var isBelWork     = (state.bel.work || []).includes(key);
+    var isBelWork     = (state.bel.work || []).indexOf(key) !== -1;
     var isVac         = isDateInVacEvents(key);
     var isNounouBlock = isNounouEdouard(key); // Édouard bloque les dispos SP
     var isGardeMed    = (state.gardes || []).some(function(g){ return key >= g.start && key <= g.end; });
@@ -4882,7 +4882,7 @@ function renderWeekCal(mode) {
       var monday = row.find(function(d) { return !d.otherMonth; }) ? getWeekMonday(row.find(function(d) { return !d.otherMonth; }).date) : null;
       if (!monday) return;
       var wk = weekKey(monday);
-      var isSelected = state[mode].weeks.includes(wk);
+      var isSelected = (state[mode].weeks.indexOf(wk) !== -1);
 
       var rowEl = document.createElement('div');
       rowEl.className = 'week-row' + (isSelected ? ' selected-week' : '');
@@ -4923,7 +4923,7 @@ function renderWeekCal(mode) {
         rowEl.addEventListener('mousedown', function(e) {
           e.preventDefault();
           gardeDrag.active = true;
-          gardeDrag.mode = state.garde.weeks.includes(wk) ? 'remove' : 'add';
+          gardeDrag.mode = (state.garde.weeks.indexOf(wk) !== -1) ? 'remove' : 'add';
           toggleGardeWeek(wk, rowEl, gardeDrag.mode);
         });
         rowEl.addEventListener('mouseenter', function() {
@@ -4933,7 +4933,7 @@ function renderWeekCal(mode) {
         rowEl.addEventListener('touchstart', function(e) {
           e.preventDefault();
           gardeDrag.active = true;
-          gardeDrag.mode = state.garde.weeks.includes(wk) ? 'remove' : 'add';
+          gardeDrag.mode = (state.garde.weeks.indexOf(wk) !== -1) ? 'remove' : 'add';
           toggleGardeWeek(wk, rowEl, gardeDrag.mode);
         }, { passive: false });
       } else {
@@ -4976,7 +4976,7 @@ function renderWeekCal(mode) {
 }
 
 function toggleGardeWeek(wk, rowEl, mode) {
-  var already = state.garde.weeks.includes(wk);
+  var already = (state.garde.weeks.indexOf(wk) !== -1);
   if (mode === 'add' && !already) {
     state.garde.weeks.push(wk);
     if (rowEl) rowEl.classList.add('selected-week');
@@ -5140,8 +5140,8 @@ function renderGlobal() {
 
     cellIndex[key] = pos;
 
-    var isBelWork = (state.bel.work || []).includes(key);
-    var isSpWork  = state.sp.work.includes(key);
+    var isBelWork = (state.bel.work || []).indexOf(key) !== -1;
+    var isSpWork  = (state.sp.work.indexOf(key) !== -1);
     var isVac     = isDateInVacEvents(key);
     var isNounou  = isDateInNounou(key);
     var isNounouEd = isNounouEdouard(key);
@@ -5777,8 +5777,8 @@ function openDaySummary(key, info) {
   body.innerHTML = '';
 
   // ── Recalcul frais depuis le state ──
-  var isBelWork  = (state.bel.work||[]).includes(key);
-  var isSpWork   = (state.sp.work||[]).includes(key);
+  var isBelWork  = (state.bel.work||[]).indexOf(key) !== -1;
+  var isSpWork   = (state.sp.work||[]).indexOf(key) !== -1;
   var isVac      = isDateInVacEvents(key);
   var isNounou   = isDateInNounou(key);
   var isNounouEd = isNounouEdouard(key);
@@ -5908,9 +5908,9 @@ function openDaySummary(key, info) {
           var sel_h = document.createElement('select');
           for (var hi = 0; hi < 24; hi++) {
             var opt = document.createElement('option');
-            opt.value = String(hi).padStart(2,'0');
-            opt.textContent = String(hi).padStart(2,'0');
-            if (f.value && f.value.split(':')[0] === String(hi).padStart(2,'0')) opt.selected = true;
+            opt.value = (('0' + (hi)).slice(-2));
+            opt.textContent = (('0' + (hi)).slice(-2));
+            if (f.value && f.value.split(':')[0] === (('0' + (hi)).slice(-2))) opt.selected = true;
             sel_h.appendChild(opt);
           }
           sel_h.style.cssText = 'flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:0.9rem;font-weight:600;outline:none;cursor:pointer';
@@ -5920,8 +5920,8 @@ function openDaySummary(key, info) {
           var sel_m = document.createElement('select');
           [0,15,30,45].forEach(function(mv) {
             var opt2 = document.createElement('option');
-            opt2.value = String(mv).padStart(2,'0');
-            opt2.textContent = String(mv).padStart(2,'0');
+            opt2.value = (('0' + (mv)).slice(-2));
+            opt2.textContent = (('0' + (mv)).slice(-2));
             if (f.value) {
               var cur_m = parseInt(f.value.split(':')[1]||'0');
               if (Math.round(cur_m/15)*15%60 === mv) opt2.selected = true; }
@@ -6146,7 +6146,7 @@ function openDaySummary(key, info) {
         return;
       }
       if (!state.bel.work) state.bel.work = [];
-      if (!state.bel.work.includes(key)) state.bel.work.push(key);
+      if (!(state.bel.work.indexOf(key) !== -1)) state.bel.work.push(key);
       saveState(); closeDayMenu(); renderGlobal(); renderHomeRecap();
     }));
   }
@@ -6919,7 +6919,7 @@ var modalType = 'bel';
 function openQuickModal() {
   // Pre-fill start date to current viewed month
   var y = state.view.global.y, m = state.view.global.m;
-  var pad = function(n) { return String(n).padStart(2,'0'); };
+  var pad = function(n) { return (('0' + (n)).slice(-2)); };
   document.getElementById('modal-name').value = '';
   document.getElementById('modal-error').style.display = 'none';
   selectModalType('bel');
@@ -6990,7 +6990,7 @@ function submitQuickEvent() {
     while (cur <= endD) {
       var mon = getWeekMonday(new Date(cur));
       var wk = weekKey(mon);
-      if (!state.garde.weeks.includes(wk)) state.garde.weeks.push(wk);
+      if (!(state.garde.weeks.indexOf(wk) !== -1)) state.garde.weeks.push(wk);
       cur.setDate(cur.getDate() + 7);
     }
 
@@ -7002,7 +7002,7 @@ function submitQuickEvent() {
     if (!state.bel.work) state.bel.work = [];
     while (cur <= endD) {
       var k = dateKey(cur);
-      if (!state.bel.work.includes(k)) state.bel.work.push(k);
+      if (!(state.bel.work.indexOf(k) !== -1)) state.bel.work.push(k);
       cur.setDate(cur.getDate() + 1);
     }
 
@@ -7029,7 +7029,7 @@ function submitQuickEvent() {
     var endD = parseKey(end);
     while (cur <= endD) {
       var k = dateKey(cur);
-      if (!state.sp.work.includes(k)) state.sp.work.push(k);
+      if (!(state.sp.work.indexOf(k) !== -1)) state.sp.work.push(k);
       cur.setDate(cur.getDate() + 1);
     }
   }
@@ -7760,7 +7760,7 @@ function renderNounouEventsList() {
 }
 
 function deleteNounouPeriod(ids) {
-  state.nounou.events = (state.nounou.events || []).filter(function(e){ return !ids.includes(e.id); });
+  state.nounou.events = (state.nounou.events || []).filter(function(e){ return !(ids.indexOf(e.id) !== -1); });
   saveState();
   renderNounouCalendar();
   renderGlobal();
@@ -7808,8 +7808,8 @@ function getSpDispos(y, m) {
   var cur = new Date(y, m, 1);
   while (cur <= lastDay) {
     var key = dateKey(cur);
-    var isWork      = (state.sp.work || []).includes(key);
-    var isBelWork   = (state.bel.work || []).includes(key);
+    var isWork      = (state.sp.work || []).indexOf(key) !== -1;
+    var isBelWork   = (state.bel.work || []).indexOf(key) !== -1;
     var isVac       = isDateInVacEvents(key);
     var isNounouEd  = isNounouEdouard ? isNounouEdouard(key) : false;
     var isGardeMed  = (state.gardes || []).some(function(g){ return key >= g.start && key <= g.end; });
@@ -8726,7 +8726,4 @@ try {
   // Swipe sur les wrappers stables (une seule fois)
   addSwipe('bel-wrapper',           function(){ changeMonth('bel',1); },  function(){ changeMonth('bel',-1); })
   addSwipe('bel-wrapper-ded',       function(){ changeMonth('bel',1); },  function(){ changeMonth('bel',-1); });
-  addSwipe('sp-wrapper',            function(){ changeMonth('sp',1); },   function(){ changeMonth('sp',-1); });
-  addSwipe('sp-wrapper-ded',        function(){ changeMonth('sp',1); },   function(){ changeMonth('sp',-1); });
-  addSwipe('subtab-gardes-content', function(){ changeGardesMonth(1); },  function(){ changeGardesMonth(-1); });
-  addSwipe('subtab-garde-content',  function()
+  addSwipe('sp-wrapper',            function(){ changeMonth('sp',1); },   fun
