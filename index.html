@@ -8205,13 +8205,44 @@ function openFormModal(type) {
     var g = document.createElement('div');
     g.style.cssText = 'flex:1;min-width:110px;display:flex;flex-direction:column;gap:5px';
     g.innerHTML = '<label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)">' + f.label + '</label>';
-    var inp = document.createElement('input');
-    inp.type = f.type; inp.id = f.id;
-    if (f.ph) inp.placeholder = f.ph;
-    inp.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:0.88rem;outline:none;width:100%';
-    inp.onfocus = function(){ this.style.borderColor = cfg.color; };
-    inp.onblur  = function(){ this.style.borderColor = 'var(--border)'; };
-    g.appendChild(inp); row.appendChild(g);
+
+    if (f.type === 'time-hhmm') {
+      // Two selects for hours and minutes
+      var hhmm = document.createElement('div');
+      hhmm.style.cssText = 'display:flex;align-items:center;gap:6px';
+      var selH = document.createElement('select');
+      selH.id = f.id + '-h';
+      for (var hi = 0; hi < 24; hi++) {
+        var oh = document.createElement('option');
+        oh.value = String(hi).padStart(2,'0');
+        oh.textContent = String(hi).padStart(2,'0');
+        selH.appendChild(oh);
+      }
+      selH.style.cssText = 'flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:0.88rem;font-weight:600;outline:none;cursor:pointer';
+      var colon = document.createElement('span');
+      colon.textContent = ':';
+      colon.style.cssText = 'font-weight:700;color:var(--muted);font-size:1.1rem';
+      var selM = document.createElement('select');
+      selM.id = f.id + '-m';
+      [0,15,30,45].forEach(function(mv){
+        var om = document.createElement('option');
+        om.value = String(mv).padStart(2,'0');
+        om.textContent = String(mv).padStart(2,'0');
+        selM.appendChild(om);
+      });
+      selM.style.cssText = selH.style.cssText;
+      hhmm.appendChild(selH); hhmm.appendChild(colon); hhmm.appendChild(selM);
+      g.appendChild(hhmm);
+    } else {
+      var inp = document.createElement('input');
+      inp.type = f.type; inp.id = f.id;
+      if (f.ph) inp.placeholder = f.ph;
+      inp.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:0.88rem;outline:none;width:100%';
+      inp.onfocus = function(){ this.style.borderColor = cfg.color; };
+      inp.onblur  = function(){ this.style.borderColor = 'var(--border)'; };
+      g.appendChild(inp);
+    }
+    row.appendChild(g);
   });
   box.appendChild(row);
 
