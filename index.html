@@ -4124,17 +4124,6 @@ function checkConflict(key, skipType) {
   return msgs;
 }
 
-function conflictWarning(msgs, date) {
-  if (msgs.length === 0) return true;
-  // On Android, confirm() is unreliable - auto-accept conflicts
-  return true;
-}
-
-function conflictRangeWarning(conflicts) {
-  if (conflicts.length === 0) return true;
-  return true;
-}
-
 // Vérifie un range de dates et retourne les jours en conflit
 function checkRangeConflicts(start, end, skipType) {
   var conflicts = [];
@@ -4439,10 +4428,6 @@ function renderGlobalDynamicLegend(y, m) {
     el.appendChild(div);
   });
 }
-
-function renderGlobalInvitesList() {}
-
-function renderGlobalNounouList() {}
 
 function renderGlobalEventsList(y, m) {
   var el = document.getElementById('global-events-list');
@@ -5773,8 +5758,6 @@ function renderInvites() {
   }
 }
 
-function buildInviteItem(ev) { return document.createElement('div'); } // legacy stub
-
 // ═══════════════════════════════════════════════════
 //  BOTTOM SHEET JOUR UNIFIÉ
 // ═══════════════════════════════════════════════════
@@ -6268,8 +6251,6 @@ function openDaySummary(key, info) {
 
 // Alias pour compatibilité (conflits list, etc.)
 function openDayMenu(key, el, info) { openDaySummary(key, info || {}); }
-
-function summaryItem() { return document.createElement('div'); } // legacy stub
 
 function closeDayMenu() {
   var menu = document.getElementById('day-menu');
@@ -6802,7 +6783,6 @@ function renderGardes() {
   }
 }
 
-function buildGardeItem(g, isPast) { return document.createElement('div'); } // legacy stub
 // ═══════════════════════════════════════════════════
 //  EXPORT / IMPORT
 // ═══════════════════════════════════════════════════
