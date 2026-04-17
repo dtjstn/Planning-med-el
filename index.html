@@ -3467,11 +3467,22 @@ function renderHomeMonthEvents() {
   var chips = [];
 
   // Invités à venir
+  function dansXJours(startKey, endKey) {
+    var diff = Math.round((parseKey(startKey) - today) / 86400000);
+    if (diff <= 0) return null;
+    if (diff === 1) return 'Demain';
+    if (diff <= 30) return 'Dans ' + diff + ' jours';
+    var months = Math.round(diff / 30.5);
+    if (months === 1) return 'Dans 1 mois';
+    return 'Dans ' + months + ' mois';
+  }
+
   (state.invites || []).forEach(function(ev) {
     if (ev.end < todayKey) return;
     var s = parseKey(ev.start), e = parseKey(ev.end);
     var isNow = ev.start <= todayKey && ev.end >= todayKey;
-    var dateStr = isNow ? 'En ce moment' :
+    var soon = !isNow && dansXJours(ev.start, ev.end);
+    var dateStr = isNow ? 'En ce moment' : soon ? soon :
       s.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) +
       (ev.start !== ev.end ? ' → ' + e.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) : '');
     chips.push({ icon:'🏠', label: ev.name || 'Invités', date: dateStr, color:'var(--invites)', dim:'var(--invites-dim)', now: isNow, sort: ev.start, type:'invite', ev: ev });
@@ -3482,7 +3493,8 @@ function renderHomeMonthEvents() {
     if (ev.end < todayKey) return;
     var s = parseKey(ev.start), e = parseKey(ev.end);
     var isNow = ev.start <= todayKey && ev.end >= todayKey;
-    var dateStr = isNow ? 'En ce moment' :
+    var soon = !isNow && dansXJours(ev.start, ev.end);
+    var dateStr = isNow ? 'En ce moment' : soon ? soon :
       s.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) +
       ' → ' + e.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
     chips.push({ icon:'🌴', label: ev.name || 'Vacances', date: dateStr, color:'var(--vac)', dim:'var(--vac-dim)', now: isNow, sort: ev.start, type:'vac', ev: ev });
@@ -3506,7 +3518,8 @@ function renderHomeMonthEvents() {
   nounouGrouped.forEach(function(p) {
     var s = parseKey(p.start), e = parseKey(p.end);
     var isNow = p.start <= todayKey && p.end >= todayKey;
-    var dateStr = isNow ? 'En ce moment' :
+    var soon = !isNow && dansXJours(p.start, p.end);
+    var dateStr = isNow ? 'En ce moment' : soon ? soon :
       s.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) +
       (p.start!==p.end ? ' → '+e.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) : '');
     chips.push({ icon:'🍼', label:'Congé nounou', sublabel: p.label, date:dateStr, color:'var(--nounou)', dim:'var(--nounou-dim)', now:isNow, sort:p.start, type:'nounou', ev:p.ev });
@@ -3517,10 +3530,12 @@ function renderHomeMonthEvents() {
     if (ev.start < todayKey) return;
     var s = parseKey(ev.start);
     if (s > horizon) return;
-    var dateStr2 = s.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
-    if (ev.time) dateStr2 += ' · ' + ev.time;
     var isNowMemo = ev.start === todayKey;
-    chips.push({ icon:'📌', label:ev.name, date: isNowMemo ? 'Aujourd\'hui' + (ev.time ? ' · ' + ev.time : '') : dateStr2, color:'var(--memo)', dim:'var(--memo-dim)', now: isNowMemo, sort:ev.start, type:'memo', ev:ev });
+    var soon = !isNowMemo && dansXJours(ev.start, ev.start);
+    var dateStr2 = isNowMemo ? 'Aujourd\'hui' + (ev.time ? ' · ' + ev.time : '') :
+      soon ? (ev.time ? soon + ' · ' + ev.time : soon) :
+      s.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}) + (ev.time ? ' · ' + ev.time : '');
+    chips.push({ icon:'📌', label:ev.name, date: dateStr2, color:'var(--memo)', dim:'var(--memo-dim)', now: isNowMemo, sort:ev.start, type:'memo', ev:ev });
   });
 
   if (chips.length === 0) return;
@@ -8768,13 +8783,4 @@ try {
   });
   setTimeout(startRealtimeSync, 500);
 } catch(e) {
-  document.body.innerHTML = '<div style="padding:40px;color:#333;font-family:sans-serif;background:#eef0f5;min-height:100vh"><h2 style="color:#d43a00">Erreur au chargement</h2><p style="margin-top:8px;color:#666;word-break:break-all">' + e.message + '</p><p style="margin-top:8px;color:#999;font-size:0.8rem">' + (e.stack||'').substring(0,200) + '</p><button onclick="localStorage.clear();location.reload()" style="margin-top:20px;padding:10px 20px;background:#4e9af1;border:none;border-radius:8px;color:#fff;cursor:pointer">Réinitialiser</button></div>';
-}
-</script>
-<!-- ══ FORM MODALE LÉGÈRE ══ -->
-<div id="form-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeFormModal()">
-  <div class="modal-box" id="form-modal-box" style="max-width:420px"></div>
-</div>
-
-</body>
-</html>
+  document.body.innerHTML = '<div style="padding:40px;color:#333;font-family:sans-serif;background:#eef0f5;min-height:100vh"><h2 style="color:#d43a00">Erreur au chargement</h2><p style="
