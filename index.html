@@ -2004,7 +2004,7 @@
 //  UTILS (définis en premier)
 // ═══════════════════════════════════════════════════
 function dateKey(d) {
-  return d.getFullYear() + '-' + String(d.getMonth()+1) + '-' + String(d.getDate());
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
 // Returns the active calendar element — checks -ded variant first (dedicated page), falls back to base ID
@@ -2095,13 +2095,13 @@ function renderConflitsBadgeOnly() {
     var k = dateKey(cur);
     var evs = [];
     var garde = (state.gardes||[]).find(function(g){ return k>=g.start&&k<=g.end; });
-    if ((state.bel.work||[]).indexOf(k) !== -1&&!(garde&&garde.lieu==='bel')) evs.push({type:'bel'});
-    if ((state.sp.work||[]).indexOf(k) !== -1&&!(garde&&garde.lieu==='sp'))   evs.push({type:'sp'});
+    if ((state.bel.work||[]).includes(k)&&!(garde&&garde.lieu==='bel')) evs.push({type:'bel'});
+    if ((state.sp.work||[]).includes(k)&&!(garde&&garde.lieu==='sp'))   evs.push({type:'sp'});
     if (garde) evs.push({type:'garde'});
     var dow = cur.getDay();
-    if (dow===6){var dk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+1));if((state.gardes||[]).some(function(g){return dk>=g.start&&dk<=g.end; })&&!garde)evs.push({type:'info'});}
-    if (dow===0){var sk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()-1));if((state.gardes||[]).some(function(g){return sk>=g.start&&sk<=g.end; })&&!garde)evs.push({type:'info'});}
-    if ((state.vac&&state.vac.events||[]).find(function(e){return k>=e.start&&k<=e.end; })) evs.push({type:'vac'});
+    if (dow===6){var dk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+1));if((state.gardes||[]).some(function(g){return dk>=g.start&&dk<=g.end;})&&!garde)evs.push({type:'info'});}
+    if (dow===0){var sk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()-1));if((state.gardes||[]).some(function(g){return sk>=g.start&&sk<=g.end;})&&!garde)evs.push({type:'info'});}
+    if ((state.vac&&state.vac.events||[]).find(function(e){return k>=e.start&&k<=e.end;})) evs.push({type:'vac'});
     var nev=getNounouEvent?getNounouEvent(k):null;
     if (nev&&nev.gardien==='edouard') evs.push({type:'nounou',isEdouard:true});
     if (detectDayConflicts(k, evs).length > 0) count++;
@@ -2123,9 +2123,11 @@ function pushToCloud() {
   }).then(function() {
     showSyncStatus('\u2713 Synchronisé', 'var(--vac)');
     setTimeout(function() { showSyncStatus(''); }, 2000);
-    isSyncing = false; }).catch(function() {
+    isSyncing = false;
+  }).catch(function() {
     showSyncStatus('\u26a0 Hors ligne', '#f87171');
-    isSyncing = false; });
+    isSyncing = false;
+  });
 }
 
 function pullFromCloud(callback) {
@@ -2189,7 +2191,7 @@ function showPage(name) {
     p.classList.remove('active');
     p.style.removeProperty('display');
   });
-  document.querySelectorAll('.bottom-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
 
   var target = document.getElementById('page-'+name);
   if (target) {
@@ -2245,12 +2247,12 @@ function isInWeek(dKey, weekMonKey) {
 }
 
 function isDateInWeeks(dKey, weeksArr) {
-  return weeksArr.some(function(wk) { return isInWeek(dKey, wk); });
+  return weeksArr.some(wk => isInWeek(dKey, wk));
 }
 
 function isDateInVacEvents(dKey) {
   var d = parseKey(dKey);
-  return (state.vac.events || []).some(function(ev) {
+  return (state.vac.events || []).some(ev => {
     var s = parseKey(ev.start);
     var e = parseKey(ev.end);
     return d >= s && d <= e;
@@ -2414,8 +2416,8 @@ function saveChangeDay() {
 
   // Check conflicts — including same type on the new day
   var msgs = [];
-  var isBel   = (state.bel.work || []).indexOf(newKey) !== -1;
-  var isSP    = (state.sp.work  || []).indexOf(newKey) !== -1;
+  var isBel   = (state.bel.work || []).includes(newKey);
+  var isSP    = (state.sp.work  || []).includes(newKey);
   var isGarde = (state.gardes   || []).some(function(g){ return newKey >= g.start && newKey <= g.end; });
   var isVac   = isDateInVacEvents(newKey);
   var isNou   = isNounouEdouard(newKey);
@@ -2475,10 +2477,10 @@ function applyChangeDay(newKey) {
   var ctx = _changeDayCtx;
   if (ctx.type === 'bel') {
     state.bel.work = (state.bel.work || []).filter(function(k){ return k !== ctx.oldKey; });
-    if (!(state.bel.work.indexOf(newKey) !== -1)) state.bel.work.push(newKey);
+    if (!state.bel.work.includes(newKey)) state.bel.work.push(newKey);
   } else if (ctx.type === 'sp') {
     state.sp.work = (state.sp.work || []).filter(function(k){ return k !== ctx.oldKey; });
-    if (!(state.sp.work.indexOf(newKey) !== -1)) state.sp.work.push(newKey);
+    if (!state.sp.work.includes(newKey)) state.sp.work.push(newKey);
   } else if (ctx.type === 'garde') {
     state.gardes = (state.gardes || []).filter(function(g){ return !(ctx.oldKey >= g.start && ctx.oldKey <= g.end); });
     state.gardes.push({ id: Date.now().toString(), lieu: ctx.lieu || 'bel', note: '', start: newKey, end: newKey });
@@ -2501,7 +2503,7 @@ function openChangeMemoDateModal(memoEv) {
   var m = document.getElementById('memo-edit-time-m');
   if (h) h.value = parts[0] || '08';
   // round minutes to nearest 15
-  if (m) { var min = parseInt(parts[1]||'0'); m.value = String(Math.round(min/15)*15%60); }
+  if (m) { var min = parseInt(parts[1]||'0'); m.value = String(Math.round(min/15)*15%60).padStart(2,'0'); }
   document.getElementById('memo-edit-modal-overlay').classList.add('open');
 }
 
@@ -2568,7 +2570,8 @@ function openQuickActionsModal() {
   showAddSheetStep1();
   document.getElementById('add-sheet-backdrop').style.display = 'block';
   requestAnimationFrame(function(){
-    document.getElementById('add-sheet').style.transform = 'translateY(0)'; });
+    document.getElementById('add-sheet').style.transform = 'translateY(0)';
+  });
 }
 
 function closeAddSheet() {
@@ -2581,7 +2584,8 @@ function closeQA() { closeAddSheet(); }
 function showAddSheetStep1() {
   document.getElementById('add-sheet-step1').style.display = 'block';
   document.getElementById('add-sheet-step2').style.display = 'none';
-  _addSheetType = null; }
+  _addSheetType = null;
+}
 
 function selectAddSheetType(typeId) {
   _addSheetType = typeId;
@@ -2664,7 +2668,8 @@ function selectAddSheetType(typeId) {
       item.dataset.gardien = g.id;
       item.innerHTML = '<div class="sp-type-name" style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:var(--nounou);display:inline-block"></span>' + g.label + '</div>' + (g.blockssp ? '<div class="sp-type-hours" style="background:var(--nounou-dim);color:var(--nounou)">Bloque SP</div>' : '');
       gnList.appendChild(item);
-      if (!firstG) firstG = g.id; });
+      if (!firstG) firstG = g.id;
+    });
     window._asNounouGardien = firstG;
     var gnTouchStartY = 0, gnLastTouch = 0;
     gnList.addEventListener('touchstart', function(e){ gnTouchStartY = e.touches[0].clientY; }, { passive: true });
@@ -2678,7 +2683,8 @@ function selectAddSheetType(typeId) {
       item.classList.add('selected');
       window._asNounouGardien = item.dataset.gardien;
       var nomWrap = document.getElementById('as-nom-wrap');
-      if (nomWrap) nomWrap.style.display = item.dataset.gardien === 'autres' ? 'block' : 'none'; });
+      if (nomWrap) nomWrap.style.display = item.dataset.gardien === 'autres' ? 'block' : 'none';
+    });
     gnList.addEventListener('click', function(e) {
       if (Date.now() - gnLastTouch < 500) return;
       var item = e.target.closest('[data-gardien]');
@@ -2687,7 +2693,8 @@ function selectAddSheetType(typeId) {
       item.classList.add('selected');
       window._asNounouGardien = item.dataset.gardien;
       var nomWrap = document.getElementById('as-nom-wrap');
-      if (nomWrap) nomWrap.style.display = item.dataset.gardien === 'autres' ? 'block' : 'none'; });
+      if (nomWrap) nomWrap.style.display = item.dataset.gardien === 'autres' ? 'block' : 'none';
+    });
     form.appendChild(gnList);
     var nomW = document.createElement('div');
     nomW.id = 'as-nom-wrap'; nomW.style.display = 'none'; nomW.style.marginTop = '10px';
@@ -2778,12 +2785,12 @@ function confirmAddSheet() {
 
 function doAddSheetBel(d) {
   if(!state.bel.work)state.bel.work=[];
-  if(!(state.bel.work.indexOf(d) !== -1))state.bel.work.push(d);
+  if(!state.bel.work.includes(d))state.bel.work.push(d);
   saveState(); renderBel(); renderGlobal(); closeAddSheet();
 }
 function doAddSheetSP(d,spType) {
   if(!state.sp.work)state.sp.work=[];
-  if(!(state.sp.work.indexOf(d) !== -1))state.sp.work.push(d);
+  if(!state.sp.work.includes(d))state.sp.work.push(d);
   if(!state.sp.types)state.sp.types={};
   state.sp.types[d]=spType;
   if(spType==='jn'){
@@ -2815,12 +2822,14 @@ function showAddSheetConflict(msgs, onForce) {
       if (parts.length === 2) {
         return '<div style="margin-bottom:10px"><div style="font-weight:600;color:var(--text);margin-bottom:2px">' + parts[0] + '</div><div style="color:var(--muted);font-size:0.88rem">' + parts[1] + '</div></div>';
       }
-      return '<div style="margin-bottom:8px">' + m + '</div>'; }).join('');
+      return '<div style="margin-bottom:8px">' + m + '</div>';
+    }).join('');
   document.getElementById('conflict-popup-overlay').classList.add('open');
 }
 function cancelConflictPopup() {
   document.getElementById('conflict-popup-overlay').classList.remove('open');
-  _addSheetForcePending = null; }
+  _addSheetForcePending = null;
+}
 function forceConflictPopup() {
   document.getElementById('conflict-popup-overlay').classList.remove('open');
   if (_addSheetForcePending) { _addSheetForcePending(); _addSheetForcePending = null; }
@@ -2873,7 +2882,8 @@ function saveVacQuick() {
       var msgsHtml = c.msgs.map(function(m) {
         return m.replace(/\(([^)]+)\)/g, '<span style="opacity:0.6;font-size:0.9em">($1)</span>');
       }).join(', ');
-      return d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}) + ' : ' + msgsHtml; });
+      return d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}) + ' : ' + msgsHtml;
+    });
     document.getElementById('vq-conflict').style.display = 'block';
     document.getElementById('vq-submit-wrap').style.display = 'none';
     return;
@@ -2884,12 +2894,14 @@ function saveVacQuick() {
 function cancelVacQuickConflict() {
   document.getElementById('vq-conflict').style.display = 'none';
   document.getElementById('vq-submit-wrap').style.display = 'flex';
-  _vqPending = null; }
+  _vqPending = null;
+}
 
 function forceVacQuick() {
   if (!_vqPending) return;
   doSaveVacQuick(_vqPending.name, _vqPending.start, _vqPending.end);
-  _vqPending = null; }
+  _vqPending = null;
+}
 
 function doSaveVacQuick(name, start, end) {
   if (!state.vac) state.vac = { events: [], year: today.getFullYear() };
@@ -2903,13 +2915,13 @@ function doSaveVacQuick(name, start, end) {
 function detectDayConflicts(key, evs) {
   var msgs = [];
   var types = evs.map(function(e){ return e.type; });
-  var hasPro = (types.indexOf('bel') !== -1) || (types.indexOf('sp') !== -1) || (types.indexOf('garde') !== -1);
+  var hasPro = types.includes('bel') || types.includes('sp') || types.includes('garde');
   var hasNounouEd = evs.some(function(e){ return e.type === 'nounou' && e.isEdouard; });
-  var hasVac = (types.indexOf('vac') !== -1);
-  var hasBel = (types.indexOf('bel') !== -1);
-  var hasSP = (types.indexOf('sp') !== -1);
-  var hasGarde = (types.indexOf('garde') !== -1);
-  var hasAstreinte = (types.indexOf('info') !== -1); // astreinte weekend
+  var hasVac = types.includes('vac');
+  var hasBel = types.includes('bel');
+  var hasSP = types.includes('sp');
+  var hasGarde = types.includes('garde');
+  var hasAstreinte = types.includes('info'); // astreinte weekend
 
   if (hasBel && hasSP) msgs.push('Belharra et St Palais le même jour');
   if (hasPro && hasVac) {
@@ -2937,7 +2949,8 @@ function detectDayConflicts(key, evs) {
 function showAutresSub(sub) {
   ['conflits','avenir'].forEach(function(s) {
     document.getElementById('subtab-autres-' + s).classList.toggle('active', s === sub);
-    document.getElementById('autres-' + s + '-content').style.display = s === sub ? 'block' : 'none'; });
+    document.getElementById('autres-' + s + '-content').style.display = s === sub ? 'block' : 'none';
+  });
   if (sub === 'conflits') renderConflitsList();
   if (sub === 'avenir')   renderAvenirRecap();
 }
@@ -2993,13 +3006,13 @@ function renderConflitsList() {
     var evs = [];
     var garde = (state.gardes||[]).find(function(g){ return k>=g.start&&k<=g.end; });
     var isGardeBel = garde && garde.lieu==='bel', isGardeSp = garde && garde.lieu==='sp';
-    if ((state.bel.work||[]).indexOf(k) !== -1 && !isGardeBel) evs.push({type:'bel'});
-    if ((state.sp.work||[]).indexOf(k) !== -1 && !isGardeSp)  evs.push({type:'sp'});
+    if ((state.bel.work||[]).includes(k) && !isGardeBel) evs.push({type:'bel'});
+    if ((state.sp.work||[]).includes(k) && !isGardeSp)  evs.push({type:'sp'});
     if (garde) evs.push({type:'garde'});
     var dow = cur.getDay();
-    if (dow===6){ var dk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+1)); if((state.gardes||[]).some(function(g){return dk>=g.start&&dk<=g.end; })&&!garde) evs.push({type:'info'}); }
-    if (dow===0){ var sk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()-1)); if((state.gardes||[]).some(function(g){return sk>=g.start&&sk<=g.end; })&&!garde) evs.push({type:'info'}); }
-    var vac=(state.vac&&state.vac.events||[]).find(function(e){return k>=e.start&&k<=e.end; });
+    if (dow===6){ var dk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+1)); if((state.gardes||[]).some(function(g){return dk>=g.start&&dk<=g.end;})&&!garde) evs.push({type:'info'}); }
+    if (dow===0){ var sk=dateKey(new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()-1)); if((state.gardes||[]).some(function(g){return sk>=g.start&&sk<=g.end;})&&!garde) evs.push({type:'info'}); }
+    var vac=(state.vac&&state.vac.events||[]).find(function(e){return k>=e.start&&k<=e.end;});
     if (vac) evs.push({type:'vac'});
     var nev=getNounouEvent?getNounouEvent(k):null;
     if (nev&&nev.gardien==='edouard') evs.push({type:'nounou',isEdouard:true});
@@ -3034,19 +3047,19 @@ function renderConflitsList() {
     // Long press → open day summary/modify menu
     var pt;
     (function(key, date) {
-      var isBelW  = (state.bel.work||[]).indexOf(key) !== -1;
-      var isSpW   = (state.sp.work||[]).indexOf(key) !== -1;
+      var isBelW  = (state.bel.work||[]).includes(key);
+      var isSpW   = (state.sp.work||[]).includes(key);
       var isVac   = isDateInVacEvents(key);
       var isNou   = isDateInNounou(key);
       var isNouEd = isNounouEdouard(key);
-      var isG     = (state.gardes||[]).some(function(g){return key>=g.start&&key<=g.end; });
+      var isG     = (state.gardes||[]).some(function(g){return key>=g.start&&key<=g.end;});
 
       function doOpen() {
         // Recalculate from current state at press time
-        var garde2 = (state.gardes||[]).some(function(g){return key>=g.start&&key<=g.end; });
+        var garde2 = (state.gardes||[]).some(function(g){return key>=g.start&&key<=g.end;});
         openDaySummary(key, {
-          isBelWork:    (state.bel.work||[]).indexOf(key) !== -1,
-          isSpWork:     (state.sp.work||[]).indexOf(key) !== -1,
+          isBelWork:    (state.bel.work||[]).includes(key),
+          isSpWork:     (state.sp.work||[]).includes(key),
           isVac:        isDateInVacEvents(key),
           isNounou:     isDateInNounou(key),
           isNounouEd:   isNounouEdouard(key),
@@ -3083,19 +3096,19 @@ function renderTodayTomorrow() {
   [[today, 'Aujourd\'hui'], [tomDate, 'Demain']].forEach(function(pair) {
     var d = pair[0], label = pair[1];
     var k = dateKey(d);
-    var garde = (state.gardes||[]).find(function(g){return k>=g.start&&k<=g.end; });
+    var garde = (state.gardes||[]).find(function(g){return k>=g.start&&k<=g.end;});
     var isGBel = garde&&garde.lieu==='bel', isGSp = garde&&garde.lieu==='sp';
     var evs = [];
-    if ((state.bel.work||[]).indexOf(k) !== -1&&!isGBel) evs.push({text:'Belharra',color:'var(--bel)'});
-    if ((state.sp.work||[]).indexOf(k) !== -1&&!isGSp) evs.push({text:'St Palais ('+getSpHours(k)+'h)',color:'#ff8c00'});
+    if ((state.bel.work||[]).includes(k)&&!isGBel) evs.push({text:'Belharra',color:'var(--bel)'});
+    if ((state.sp.work||[]).includes(k)&&!isGSp) evs.push({text:'St Palais ('+getSpHours(k)+'h)',color:'#ff8c00'});
     if (garde) evs.push({text:'Garde '+(garde.lieu==='bel'?'Belharra':'St Palais'),color:'var(--gardes)'});
-    var vac=(state.vac&&state.vac.events||[]).find(function(e){return k>=e.start&&k<=e.end; });
+    var vac=(state.vac&&state.vac.events||[]).find(function(e){return k>=e.start&&k<=e.end;});
     if (vac) evs.push({text:vac.name||'Vacances',color:'var(--vac)'});
     var nev=getNounouEvent?getNounouEvent(k):null;
-    if (nev){var ng=GARDIENS.find(function(x){return x.id===nev.gardien; });evs.push({text:'Congé nounou'+(ng?(' ('+( ng.id==='autres'&&nev.nom?nev.nom:ng.label)+')'):''),color:'var(--nounou)'});}
-    var inv=(state.invites||[]).find(function(e){return k>=e.start&&k<=e.end; });
+    if (nev){var ng=GARDIENS.find(function(x){return x.id===nev.gardien;});evs.push({text:'Congé nounou'+(ng?(' ('+( ng.id==='autres'&&nev.nom?nev.nom:ng.label)+')'):''),color:'var(--nounou)'});}
+    var inv=(state.invites||[]).find(function(e){return k>=e.start&&k<=e.end;});
     if (inv) evs.push({text:inv.name||'Invités',color:'var(--invites)'});
-    var memo=(state.memos||[]).find(function(e){return k>=e.start&&k<=e.end; });
+    var memo=(state.memos||[]).find(function(e){return k>=e.start&&k<=e.end;});
     if (memo) evs.push({text:(memo.time?memo.time+' : ':'')+memo.name,color:'var(--memo)'});
 
     if (evs.length === 0 && k !== todayKey) return;
@@ -3158,7 +3171,8 @@ function renderHomeDashboard() {
       if (d.getFullYear() !== contractYear || d.getMonth() !== cm) return;
       var h = getSpHours(k);
       if (k < todayKey) spRealized += h;
-      else spPlanned += h; });
+      else spPlanned += h;
+    });
   }
   var spTotalProgrammed = spRealized + spPlanned;
   var spToProgram = Math.max(0, 372 - spTotalProgrammed);
@@ -3312,7 +3326,7 @@ function openSpDetailSheet(mode, contractYear) {
       // Group by month
       var byMonth2 = {};
       disposList.forEach(function(d) {
-        var mk = d.getFullYear() + '-' + String(d.getMonth());
+        var mk = d.getFullYear() + '-' + String(d.getMonth()).padStart(2,'0');
         if (!byMonth2[mk]) byMonth2[mk] = { label: MONTHS_FR[d.getMonth()] + ' ' + d.getFullYear(), y: d.getFullYear(), m: d.getMonth(), days: [] };
         byMonth2[mk].days.push(d);
       });
@@ -3362,7 +3376,8 @@ function openSpDetailSheet(mode, contractYear) {
   var days = (state.sp.work || []).filter(function(k) {
     var d = parseKey(k);
     if (d.getFullYear() !== contractYear) return false;
-    return mode === 'realized' ? k < todayKey : k >= todayKey; }).sort(function(a, b) {
+    return mode === 'realized' ? k < todayKey : k >= todayKey;
+  }).sort(function(a, b) {
     return mode === 'realized' ? b.localeCompare(a) : a.localeCompare(b); // réalisées = plus récent en premier
   });
 
@@ -3388,7 +3403,7 @@ function openSpDetailSheet(mode, contractYear) {
       return mode === 'realized' ? b.localeCompare(a) : a.localeCompare(b);
     }).forEach(function(mk) {
       var group = byMonth[mk];
-      var monthTotal = group.days.reduce(function(sum, k){ return sum + getSpHours(k)(k); }, 0);
+      var monthTotal = group.days.reduce(function(sum, k){ return sum + getSpHours(k); }, 0);
 
       // Mois header
       var mhdr = document.createElement('div');
@@ -3421,7 +3436,7 @@ function openSpDetailSheet(mode, contractYear) {
     });
 
     // Total
-    var total = days.reduce(function(sum, k){ return sum + getSpHours(k)(k); }, 0);
+    var total = days.reduce(function(sum, k){ return sum + getSpHours(k); }, 0);
     var tot = document.createElement('div');
     tot.style.cssText = 'display:flex;justify-content:space-between;padding:12px 0 4px;margin-top:4px';
     var tl = document.createElement('span');
@@ -3452,22 +3467,11 @@ function renderHomeMonthEvents() {
   var chips = [];
 
   // Invités à venir
-  function dansXJours(startKey, endKey) {
-    var diff = Math.round((parseKey(startKey) - today) / 86400000);
-    if (diff <= 0) return null;
-    if (diff === 1) return 'Demain';
-    if (diff <= 30) return 'Dans ' + diff + ' jours';
-    var months = Math.round(diff / 30.5);
-    if (months === 1) return 'Dans 1 mois';
-    return 'Dans ' + months + ' mois';
-  }
-
   (state.invites || []).forEach(function(ev) {
     if (ev.end < todayKey) return;
     var s = parseKey(ev.start), e = parseKey(ev.end);
     var isNow = ev.start <= todayKey && ev.end >= todayKey;
-    var soon = !isNow && dansXJours(ev.start, ev.end);
-    var dateStr = isNow ? 'En ce moment' : soon ? soon :
+    var dateStr = isNow ? 'En ce moment' :
       s.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) +
       (ev.start !== ev.end ? ' → ' + e.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) : '');
     chips.push({ icon:'🏠', label: ev.name || 'Invités', date: dateStr, color:'var(--invites)', dim:'var(--invites-dim)', now: isNow, sort: ev.start, type:'invite', ev: ev });
@@ -3478,8 +3482,7 @@ function renderHomeMonthEvents() {
     if (ev.end < todayKey) return;
     var s = parseKey(ev.start), e = parseKey(ev.end);
     var isNow = ev.start <= todayKey && ev.end >= todayKey;
-    var soon = !isNow && dansXJours(ev.start, ev.end);
-    var dateStr = isNow ? 'En ce moment' : soon ? soon :
+    var dateStr = isNow ? 'En ce moment' :
       s.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) +
       ' → ' + e.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
     chips.push({ icon:'🌴', label: ev.name || 'Vacances', date: dateStr, color:'var(--vac)', dim:'var(--vac-dim)', now: isNow, sort: ev.start, type:'vac', ev: ev });
@@ -3503,8 +3506,7 @@ function renderHomeMonthEvents() {
   nounouGrouped.forEach(function(p) {
     var s = parseKey(p.start), e = parseKey(p.end);
     var isNow = p.start <= todayKey && p.end >= todayKey;
-    var soon = !isNow && dansXJours(p.start, p.end);
-    var dateStr = isNow ? 'En ce moment' : soon ? soon :
+    var dateStr = isNow ? 'En ce moment' :
       s.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) +
       (p.start!==p.end ? ' → '+e.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) : '');
     chips.push({ icon:'🍼', label:'Congé nounou', sublabel: p.label, date:dateStr, color:'var(--nounou)', dim:'var(--nounou-dim)', now:isNow, sort:p.start, type:'nounou', ev:p.ev });
@@ -3515,12 +3517,10 @@ function renderHomeMonthEvents() {
     if (ev.start < todayKey) return;
     var s = parseKey(ev.start);
     if (s > horizon) return;
+    var dateStr2 = s.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
+    if (ev.time) dateStr2 += ' · ' + ev.time;
     var isNowMemo = ev.start === todayKey;
-    var soon = !isNowMemo && dansXJours(ev.start, ev.start);
-    var dateStr2 = isNowMemo ? 'Aujourd\'hui' + (ev.time ? ' · ' + ev.time : '') :
-      soon ? (ev.time ? soon + ' · ' + ev.time : soon) :
-      s.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}) + (ev.time ? ' · ' + ev.time : '');
-    chips.push({ icon:'📌', label:ev.name, date: dateStr2, color:'var(--memo)', dim:'var(--memo-dim)', now: isNowMemo, sort:ev.start, type:'memo', ev:ev });
+    chips.push({ icon:'📌', label:ev.name, date: isNowMemo ? 'Aujourd\'hui' + (ev.time ? ' · ' + ev.time : '') : dateStr2, color:'var(--memo)', dim:'var(--memo-dim)', now: isNowMemo, sort:ev.start, type:'memo', ev:ev });
   });
 
   if (chips.length === 0) return;
@@ -3694,10 +3694,10 @@ function renderHomeRecap_into(el) {
       var isGardeBel = garde && garde.lieu === 'bel';
       var isGardeSp  = garde && garde.lieu === 'sp';
 
-      if ((state.bel.work || []).indexOf(k) !== -1 && !isGardeBel) {
+      if ((state.bel.work || []).includes(k) && !isGardeBel) {
         evs.push({ text: 'Belharra', color: 'var(--bel)', type: 'bel' });
       }
-      if ((state.sp.work || []).indexOf(k) !== -1 && !isGardeSp) {
+      if ((state.sp.work || []).includes(k) && !isGardeSp) {
         var spH = getSpHours(k);
         evs.push({ text: 'St Palais (' + spH + 'h)', color: '#ff8c00', type: 'sp' });
       }
@@ -3974,7 +3974,7 @@ function toggleEditMode(cal) {
 var belDrag = { active: false, mode: null }; // mode: 'add' | 'remove'
 
 function renderBel() {
-  var y = state.view.bel.y, m = state.view.bel.m;
+  var { y, m } = state.view.bel;
   var lbl = getCalEl('bel-month-label');
   var cal = getCalEl('bel-calendar');
   if (!lbl || !cal) return;
@@ -3986,7 +3986,7 @@ function renderBel() {
   grid.className = 'cal-grid';
   grid.style.userSelect = 'none';
 
-  DAYS_FR.forEach(function(d) {
+  DAYS_FR.forEach(d => {
     var h = document.createElement('div');
     h.className = 'cal-header-cell'; h.textContent = d;
     grid.appendChild(h);
@@ -3994,7 +3994,7 @@ function renderBel() {
 
   var workList = [];
 
-  days.forEach(function(day) { var date = day.date, key = day.key, otherMonth = day.otherMonth;
+  days.forEach(({ date, key, otherMonth }) => {
     var el = document.createElement('div');
     el.className = 'cal-day';
     el.dataset.key = key;
@@ -4002,7 +4002,7 @@ function renderBel() {
     if (key === todayKey) el.classList.add('today');
     if (key < todayKey && !otherMonth) el.classList.add('past-day');
 
-    var isWork = (state.bel.work || []).indexOf(key) !== -1;
+    var isWork = (state.bel.work || []).includes(key);
     var isGarde = (state.gardes || []).some(function(g){ return key >= g.start && key <= g.end && g.lieu === 'bel'; });
     if (!otherMonth) {
       if (isGarde) {
@@ -4044,8 +4044,8 @@ function renderBel() {
 // ═══════════════════════════════════════════════════
 function checkConflict(key, skipType) {
   var msgs = [];
-  var isBel   = skipType !== 'bel'  && (state.bel.work || []).indexOf(key) !== -1;
-  var isSP    = skipType !== 'sp'   && (state.sp.work  || []).indexOf(key) !== -1;
+  var isBel   = skipType !== 'bel'  && (state.bel.work || []).includes(key);
+  var isSP    = skipType !== 'sp'   && (state.sp.work  || []).includes(key);
   var isGarde = skipType !== 'garde'&& (state.gardes   || []).some(function(g){ return key >= g.start && key <= g.end; });
   var isVac   = skipType !== 'vac'  && isDateInVacEvents(key);
   var isNou   = skipType !== 'nounou' && isNounouEdouard(key);
@@ -4186,7 +4186,7 @@ function openBelTypeModal(key) {
   document.getElementById('bel-range-end').value = key;
 
   // Check existing for remove button
-  var isWork = (state.bel.work||[]).indexOf(key) !== -1;
+  var isWork = (state.bel.work||[]).includes(key);
   var isGarde = (state.gardes||[]).some(function(g){ return key>=g.start&&key<=g.end&&g.lieu==='bel'; });
   var existingType = isGarde ? 'garde' : 'normal';
   belSelectedType = existingType;
@@ -4243,7 +4243,7 @@ function confirmBelRange() {
     var k = dateKey(cur);
     var dow = cur.getDay();
     if (dow !== 0 && dow !== 6) { // skip weekends
-      if (!(state.bel.work.indexOf(k) !== -1)) state.bel.work.push(k);
+      if (!state.bel.work.includes(k)) state.bel.work.push(k);
     }
     cur.setDate(cur.getDate() + 1);
   }
@@ -4290,11 +4290,11 @@ function applyBelType(key, type) {
   // Remove existing garde BEL on this day
   state.gardes = (state.gardes||[]).filter(function(g){ return !(key>=g.start&&key<=g.end&&g.lieu==='bel'); });
   if (type === 'garde') {
-    if (!(state.bel.work.indexOf(key) !== -1)) state.bel.work.push(key);
+    if (!state.bel.work.includes(key)) state.bel.work.push(key);
     if (!state.gardes) state.gardes = [];
     state.gardes.push({ id: Date.now().toString(), lieu: 'bel', note: '', start: key, end: key });
   } else {
-    if (!(state.bel.work.indexOf(key) !== -1)) state.bel.work.push(key);
+    if (!state.bel.work.includes(key)) state.bel.work.push(key);
   }
   saveState();
   closeBelTypeModal();
@@ -4346,7 +4346,7 @@ function forceBelDay() {
 }
 
 function changeMonth(cal, dir) {
-  var y = state.view[cal].y, m = state.view[cal].m;
+  var { y, m } = state.view[cal];
   m += dir;
   if (m < 0) { m = 11; y--; }
   if (m > 11) { m = 0; y++; }
@@ -4406,13 +4406,13 @@ function renderGlobalDynamicLegend(y, m) {
   ];
 
   var present = {
-    bel:     (state.bel.work||[]).some(function(k){ var d=parseKey(k); return d>=firstDay&&d<= lastDay; }),
-    sp:      (state.sp.work||[]).some(function(k){ var d=parseKey(k); return d>=firstDay&&d<= lastDay; }),
-    gardes:  (state.gardes||[]).some(function(g){ return parseKey(g.start)<=lastDay&&parseKey(g.end)>= firstDay; }),
-    vac:     (state.vac&&state.vac.events||[]).some(function(e){ return parseKey(e.start)<=lastDay&&parseKey(e.end)>= firstDay; }),
-    nounou:  (state.nounou&&state.nounou.events||[]).some(function(e){ var d=parseKey(e.start); return d>=firstDay&&d<= lastDay; }),
-    invites: (state.invites||[]).some(function(e){ return parseKey(e.start)<=lastDay&&parseKey(e.end)>= firstDay; }),
-    memo:    (state.memos||[]).some(function(e){ var d=parseKey(e.start); return d>=firstDay&&d<= lastDay; }),
+    bel:     (state.bel.work||[]).some(function(k){ var d=parseKey(k); return d>=firstDay&&d<=lastDay; }),
+    sp:      (state.sp.work||[]).some(function(k){ var d=parseKey(k); return d>=firstDay&&d<=lastDay; }),
+    gardes:  (state.gardes||[]).some(function(g){ return parseKey(g.start)<=lastDay&&parseKey(g.end)>=firstDay; }),
+    vac:     (state.vac&&state.vac.events||[]).some(function(e){ return parseKey(e.start)<=lastDay&&parseKey(e.end)>=firstDay; }),
+    nounou:  (state.nounou&&state.nounou.events||[]).some(function(e){ var d=parseKey(e.start); return d>=firstDay&&d<=lastDay; }),
+    invites: (state.invites||[]).some(function(e){ return parseKey(e.start)<=lastDay&&parseKey(e.end)>=firstDay; }),
+    memo:    (state.memos||[]).some(function(e){ var d=parseKey(e.start); return d>=firstDay&&d<=lastDay; }),
   };
 
   LEGEND_TYPES.forEach(function(item) {
@@ -4460,7 +4460,8 @@ function renderGlobalEventsList(y, m) {
 
   // Nounou
   var nounouEvs = (state.nounou && state.nounou.events || []).filter(function(ev) {
-    return parseKey(ev.start) >= firstDay && parseKey(ev.start) <= lastDay; }).sort(function(a,b){ return a.start.localeCompare(b.start); });
+    return parseKey(ev.start) >= firstDay && parseKey(ev.start) <= lastDay;
+  }).sort(function(a,b){ return a.start.localeCompare(b.start); });
   var grouped = [];
   nounouEvs.forEach(function(ev) {
     var g = GARDIENS.find(function(x){ return x.id === ev.gardien; });
@@ -4606,7 +4607,7 @@ function openSpTypeModal(key) {
   var list = document.getElementById('sp-type-list');
   list.innerHTML = '';
   var currentType = (state.sp.types || {})[key];
-  var isWork = (state.sp.work || []).indexOf(key) !== -1;
+  var isWork = (state.sp.work || []).includes(key);
 
   SP_TYPES.forEach(function(t) {
     var item = document.createElement('div');
@@ -4656,7 +4657,8 @@ function buildConflictHTML(key, msgs) {
     if (parts.length === 2) {
       return '<div style="margin:6px 0"><div style="font-weight:600">' + parts[0] + '</div><div style="font-size:0.88rem;opacity:0.85">' + parts[1] + '</div></div>';
     }
-    return '<div style="margin:4px 0">' + m + '</div>'; }).join('');
+    return '<div style="margin:4px 0">' + m + '</div>';
+  }).join('');
   return '<strong>' + label + '</strong>' + lines;
 }
 
@@ -4664,7 +4666,7 @@ function confirmSpType() {
   if (!spSelectedType) spSelectedType = SP_TYPES[0].id;
   if (!spTypeModalKey) return;
   if (!state.sp.work) state.sp.work = [];
-  var isNew = !(state.sp.work.indexOf(spTypeModalKey) !== -1);
+  var isNew = !state.sp.work.includes(spTypeModalKey);
   if (isNew) {
     var msgs = checkConflict(spTypeModalKey, 'sp');
     if (msgs.length > 0) {
@@ -4695,7 +4697,7 @@ function forceSpType() {
 
   if (spSelectedType === 'jn') {
     // Garde SP : add to gardes, keep in sp.work for hours tracking
-    if (!(state.sp.work.indexOf(spTypeModalKey) !== -1)) state.sp.work.push(spTypeModalKey);
+    if (!state.sp.work.includes(spTypeModalKey)) state.sp.work.push(spTypeModalKey);
     state.sp.types[spTypeModalKey] = spSelectedType;
     if (!state.gardes) state.gardes = [];
     // Remove existing garde on this day first
@@ -4704,7 +4706,7 @@ function forceSpType() {
   } else {
     // Normal SP day — remove from gardes if it was a garde before
     state.gardes = (state.gardes || []).filter(function(g){ return !(spTypeModalKey >= g.start && spTypeModalKey <= g.end && g.lieu === 'sp'); });
-    if (!(state.sp.work.indexOf(spTypeModalKey) !== -1)) state.sp.work.push(spTypeModalKey);
+    if (!state.sp.work.includes(spTypeModalKey)) state.sp.work.push(spTypeModalKey);
     state.sp.types[spTypeModalKey] = spSelectedType;
   }
 
@@ -4749,7 +4751,7 @@ function closeSpTypeModal(e) {
 var spDrag = { active: false, mode: null };
 
 function renderSP() {
-  var y = state.view.sp.y, m = state.view.sp.m;
+  var { y, m } = state.view.sp;
   var cal = getCalEl('sp-calendar');
   if (!cal) return;
   var label = getCalEl('sp-month-label');
@@ -4762,7 +4764,7 @@ function renderSP() {
   grid.className = 'cal-grid';
   grid.style.userSelect = 'none';
 
-  DAYS_FR.forEach(function(d) {
+  DAYS_FR.forEach(d => {
     var h = document.createElement('div');
     h.className = 'cal-header-cell'; h.textContent = d;
     grid.appendChild(h);
@@ -4770,7 +4772,7 @@ function renderSP() {
 
   var workList = [];
 
-  days.forEach(function(day) { var date = day.date, key = day.key, otherMonth = day.otherMonth;
+  days.forEach(({ date, key, otherMonth }) => {
     var el = document.createElement('div');
     el.className = 'cal-day';
     el.dataset.key = key;
@@ -4779,10 +4781,10 @@ function renderSP() {
     if (key === todayKey) el.classList.add('today');
     if (key < todayKey && !otherMonth) el.classList.add('past-day');
 
-    var isWork = (state.sp.work.indexOf(key) !== -1);
+    var isWork = state.sp.work.includes(key);
 
     // Calcul des blocages
-    var isBelWork     = (state.bel.work || []).indexOf(key) !== -1;
+    var isBelWork     = (state.bel.work || []).includes(key);
     var isVac         = isDateInVacEvents(key);
     var isNounouBlock = isNounouEdouard(key); // Édouard bloque les dispos SP
     var isGardeMed    = (state.gardes || []).some(function(g){ return key >= g.start && key <= g.end; });
@@ -4876,13 +4878,13 @@ function renderWeekCal(mode) {
     var rows = [];
     for (var i = 0; i < days.length; i += 7) rows.push(days.slice(i, i+7));
 
-    rows.forEach(function(row) {
-      if (row.every(function(d) { return d.otherMonth; })) return;
+    rows.forEach(row => {
+      if (row.every(d => d.otherMonth)) return;
 
-      var monday = row.find(function(d) { return !d.otherMonth; }) ? getWeekMonday(row.find(function(d) { return !d.otherMonth; }).date) : null;
+      var monday = row.find(d => !d.otherMonth) ? getWeekMonday(row.find(d => !d.otherMonth).date) : null;
       if (!monday) return;
       var wk = weekKey(monday);
-      var isSelected = (state[mode].weeks.indexOf(wk) !== -1);
+      var isSelected = state[mode].weeks.includes(wk);
 
       var rowEl = document.createElement('div');
       rowEl.className = 'week-row' + (isSelected ? ' selected-week' : '');
@@ -4902,7 +4904,7 @@ function renderWeekCal(mode) {
       dayGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
       dayGrid.style.flex = '1';
 
-      row.forEach(function(day) { var date = day.date, key = day.key, otherMonth = day.otherMonth;
+      row.forEach(({ date, key, otherMonth }) => {
         var el = document.createElement('div');
         el.className = 'cal-day';
         if (otherMonth) el.classList.add('other-month');
@@ -4920,26 +4922,26 @@ function renderWeekCal(mode) {
 
       if (mode === 'garde') {
         // Mouse
-        rowEl.addEventListener('mousedown', function(e) {
+        rowEl.addEventListener('mousedown', e => {
           e.preventDefault();
           gardeDrag.active = true;
-          gardeDrag.mode = (state.garde.weeks.indexOf(wk) !== -1) ? 'remove' : 'add';
+          gardeDrag.mode = state.garde.weeks.includes(wk) ? 'remove' : 'add';
           toggleGardeWeek(wk, rowEl, gardeDrag.mode);
         });
-        rowEl.addEventListener('mouseenter', function() {
+        rowEl.addEventListener('mouseenter', () => {
           if (gardeDrag.active) toggleGardeWeek(wk, rowEl, gardeDrag.mode);
         });
         // Touch
-        rowEl.addEventListener('touchstart', function(e) {
+        rowEl.addEventListener('touchstart', e => {
           e.preventDefault();
           gardeDrag.active = true;
-          gardeDrag.mode = (state.garde.weeks.indexOf(wk) !== -1) ? 'remove' : 'add';
+          gardeDrag.mode = state.garde.weeks.includes(wk) ? 'remove' : 'add';
           toggleGardeWeek(wk, rowEl, gardeDrag.mode);
         }, { passive: false });
       } else {
         // Vac: keep simple click
-        rowEl.addEventListener('click', function() {
-          if (isSelected) state[mode].weeks = state[mode].weeks.filter(function(w) { return w !== wk; });
+        rowEl.addEventListener('click', () => {
+          if (isSelected) state[mode].weeks = state[mode].weeks.filter(w => w !== wk);
           else state[mode].weeks.push(wk);
           saveState();
           renderWeekCal(mode);
@@ -4954,7 +4956,7 @@ function renderWeekCal(mode) {
 
   if (mode === 'garde') {
     // Touch move over weeks
-    container.addEventListener('touchmove', function(e) {
+    container.addEventListener('touchmove', e => {
       if (!gardeDrag.active) return;
       e.preventDefault();
       var touch = e.touches[0];
@@ -4963,11 +4965,11 @@ function renderWeekCal(mode) {
       if (rowEl) toggleGardeWeek(rowEl.dataset.wk, rowEl, gardeDrag.mode);
     }, { passive: false });
 
-    container.addEventListener('touchend', function() {
+    container.addEventListener('touchend', () => {
       if (gardeDrag.active) { gardeDrag.active = false; saveState(); renderWeekCal('garde'); }
     });
 
-    document.addEventListener('mouseup', function() {
+    document.addEventListener('mouseup', () => {
       if (gardeDrag.active) { gardeDrag.active = false; saveState(); renderWeekCal('garde'); }
     }, { once: true });
   }
@@ -4976,12 +4978,12 @@ function renderWeekCal(mode) {
 }
 
 function toggleGardeWeek(wk, rowEl, mode) {
-  var already = (state.garde.weeks.indexOf(wk) !== -1);
+  var already = state.garde.weeks.includes(wk);
   if (mode === 'add' && !already) {
     state.garde.weeks.push(wk);
     if (rowEl) rowEl.classList.add('selected-week');
   } else if (mode === 'remove' && already) {
-    state.garde.weeks = state.garde.weeks.filter(function(w) { return w !== wk; });
+    state.garde.weeks = state.garde.weeks.filter(w => w !== wk);
     if (rowEl) rowEl.classList.remove('selected-week');
   }
 }
@@ -4994,7 +4996,7 @@ function renderWeeksList(mode) {
     listEl.innerHTML = '<div class="dispo-empty">Aucune semaine sélectionnée</div>';
     return;
   }
-  weeks.forEach(function(wk) {
+  weeks.forEach(wk => {
     var mon = parseKey(wk);
     var sun = new Date(mon); sun.setDate(mon.getDate()+6);
     var item = document.createElement('div');
@@ -5004,9 +5006,9 @@ function renderWeeksList(mode) {
     var rm = document.createElement('button');
     rm.className = 'sw-remove';
     rm.textContent = '×';
-    rm.onclick = function(e) {
+    rm.onclick = (e) => {
       e.stopPropagation();
-      state[mode].weeks = state[mode].weeks.filter(function(w) { return w !== wk; });
+      state[mode].weeks = state[mode].weeks.filter(w => w !== wk);
       saveState();
       renderWeekCal(mode);
     };
@@ -5040,7 +5042,7 @@ function goToToday() {
 }
 
 function changeGlobalMonth(dir) {
-  var y = state.view.global.y, m = state.view.global.m;
+  var { y, m } = state.view.global;
   m += dir;
   if (m < 0)  { m = 11; y--; }
   if (m > 11) { m = 0;  y++; }
@@ -5097,7 +5099,7 @@ function dayMatchesFilter(info) {
 // ═══════════════════════════════════════════════════
 function renderGlobal() {
   if (!state.nounou) state.nounou = { events: [] };
-  var y = state.view.global.y, m = state.view.global.m;
+  var { y, m } = state.view.global;
   document.getElementById('global-month-label').textContent = MONTHS_FR[m] + ' ' + y;
 
   var cal = document.getElementById('global-big-cal');
@@ -5113,7 +5115,7 @@ function renderGlobal() {
   grid.id = 'global-big-grid-inner';
 
   // Headers
-  DAYS_FR.forEach(function(d) {
+  DAYS_FR.forEach(d => {
     var h = document.createElement('div');
     h.className = 'global-big-header'; h.textContent = d;
     grid.appendChild(h);
@@ -5126,7 +5128,7 @@ function renderGlobal() {
   var cellIndex = {}; // key -> cell position (0-based among all cells incl headers=7)
   var pos = 0;
 
-  days.forEach(function(day) { var date = day.date, key = day.key, otherMonth = day.otherMonth;
+  days.forEach(({ date, key, otherMonth }) => {
     var el = document.createElement('div');
     el.className = 'global-big-day';
     el.dataset.gridpos = pos + 7; // +7 for header row
@@ -5140,12 +5142,12 @@ function renderGlobal() {
 
     cellIndex[key] = pos;
 
-    var isBelWork = (state.bel.work || []).indexOf(key) !== -1;
-    var isSpWork  = (state.sp.work.indexOf(key) !== -1);
+    var isBelWork = (state.bel.work || []).includes(key);
+    var isSpWork  = state.sp.work.includes(key);
     var isVac     = isDateInVacEvents(key);
     var isNounou  = isDateInNounou(key);
     var isNounouEd = isNounouEdouard(key);
-    var isGardeMed = (state.gardes || []).some(function(g) { return key >= g.start && key <= g.end; });
+    var isGardeMed = (state.gardes || []).some(g => key >= g.start && key <= g.end);
     var hasInvite = (state.invites || []).some(function(e){ return key >= e.start && key <= e.end; });
     var hasMemo   = (state.memos || []).some(function(e){ return key >= e.start && key <= e.end; });
     var isDispoSP = !isBelWork && !isSpWork && !isVac && !isNounouEd && !isGardeMed;
@@ -5166,7 +5168,7 @@ function renderGlobal() {
     // ── Priorité 2 : Garde ──
     else if (isGardeMed && !nounouOnly) {
       el.classList.add('g-gardes');
-      var g = (state.gardes || []).find(function(g) { return key >= g.start && key <= g.end; });
+      var g = (state.gardes || []).find(g => key >= g.start && key <= g.end);
       label = '';
     }
     // ── Priorité 3 : Édouard (fond rose foncé) ──
@@ -5208,7 +5210,7 @@ function renderGlobal() {
 
     // BEL/SP initiales sous le chiffre pour les gardes
     if (isGardeMed && !nounouOnly) {
-      var gd = (state.gardes || []).find(function(g) { return key >= g.start && key <= g.end; });
+      var gd = (state.gardes || []).find(g => key >= g.start && key <= g.end);
       if (gd && gd.lieu) {
         var gardeInitial = document.createElement('div');
         gardeInitial.style.cssText = 'font-size:0.6rem;font-weight:700;color:#fff;letter-spacing:0.05em;text-align:center;width:100%';
@@ -5275,14 +5277,14 @@ function renderGlobal() {
 
   // ── Draw vac bandeaux AFTER grid is in DOM ──
   // We need the grid rendered first to measure cell positions
-  requestAnimationFrame(function() {
+  requestAnimationFrame(() => {
     var gridEl = document.getElementById('global-big-grid-inner');
     if (!gridEl) return;
 
     var firstDay = new Date(y, m, 1);
     var lastDay  = new Date(y, m+1, 0);
 
-    vacEvents.forEach(function(ev) {
+    vacEvents.forEach(ev => {
       var evStart = parseKey(ev.start);
       var evEnd   = parseKey(ev.end);
 
@@ -5349,18 +5351,21 @@ function renderGlobal() {
   wrap.ontouchstart = function(e) {
     _gSwipeX = e.touches[0].clientX;
     _gSwipeY = e.touches[0].clientY;
-    _gMoved = false; };
+    _gMoved = false;
+  };
   wrap.addEventListener('touchmove', function(e) {
     if (_gSwipeX === null) return;
     var dx = Math.abs(e.touches[0].clientX - _gSwipeX);
     var dy = Math.abs(e.touches[0].clientY - _gSwipeY);
-    if (dx > 25 || dy > 25) _gMoved = true; }, { passive: true });
+    if (dx > 25 || dy > 25) _gMoved = true;
+  }, { passive: true });
   wrap.ontouchend = function(e) {
     if (_gSwipeX === null) return;
     if (!_gMoved) { _gSwipeX = null; return; } // tap — var cell handle it
     var dx = e.changedTouches[0].clientX - _gSwipeX;
     if (Math.abs(dx) > 60) changeGlobalMonth(dx < 0 ? 1 : -1);
-    _gSwipeX = null; _gMoved = false; };
+    _gSwipeX = null; _gMoved = false;
+  };
 }
 
 // ── Swipe helper ──
@@ -5379,7 +5384,8 @@ function addSwipe(elementId, onLeft, onRight) {
     // Ignore si mouvement principalement vertical ou trop court
     if (Math.abs(dy) > Math.abs(dx) * 0.6) { startX = null; return; }
     if (Math.abs(dx) > 70) { dx < 0 ? onLeft() : onRight(); }
-    startX = null; }, { passive: true });
+    startX = null;
+  }, { passive: true });
 }
 
 // ═══════════════════════════════════════════════════
@@ -5406,14 +5412,14 @@ function renderRangePicker(id) {
 
   var grid = document.getElementById(id + '-grid');
 
-  DAYS_FR.forEach(function(d) {
+  DAYS_FR.forEach(d => {
     var h = document.createElement('div');
     h.className = 'rp-header'; h.textContent = d;
     grid.appendChild(h);
   });
 
   var days = buildMonthDays(y, m);
-  days.forEach(function(day) { var date = day.date, key = day.key, otherMonth = day.otherMonth;
+  days.forEach(({ date, key, otherMonth }) => {
     var el2 = document.createElement('div');
     el2.className = 'rp-day' + (otherMonth ? ' empty' : '');
 
@@ -5430,14 +5436,15 @@ function renderRangePicker(id) {
       if (inRange) { el2.classList.add('rp-in-range'); el2.style.background = colDim; }
 
       // Hover preview
-      el2.addEventListener('mouseenter', function() {
+      el2.addEventListener('mouseenter', () => {
         if (start && !end) {
           // preview range
-          document.querySelectorAll('#' + id + '-grid .rp-day').forEach(function(d2) {
+          document.querySelectorAll('#' + id + '-grid .rp-day').forEach(d2 => {
             d2.classList.remove('rp-in-range');
-            d2.style.background = ''; });
+            d2.style.background = '';
+          });
           var hoverKey = key;
-          document.querySelectorAll('#' + id + '-grid .rp-day').forEach(function(d2, i) {
+          document.querySelectorAll('#' + id + '-grid .rp-day').forEach((d2, i) => {
             var dk = d2.dataset.key;
             if (!dk) return;
             if (dk === start) { d2.style.background = col; }
@@ -5449,7 +5456,7 @@ function renderRangePicker(id) {
       });
 
       el2.dataset.key = key;
-      el2.addEventListener('click', function() { rpClick(id, key); });
+      el2.addEventListener('click', () => rpClick(id, key));
     }
 
     grid.appendChild(el2);
@@ -5460,7 +5467,8 @@ function rpClick(id, key) {
   var rp = rangePickers[id];
   if (!rp.start || (rp.start && rp.end)) {
     // Start fresh
-    rp.start = key; rp.end = null; } else {
+    rp.start = key; rp.end = null;
+  } else {
     // Set end (ensure order)
     if (key < rp.start) { rp.end = rp.start; rp.start = key; }
     else { rp.end = key; }
@@ -5547,12 +5555,14 @@ function addVacEvent() {
 
 function cancelVacInlineConflict() {
   document.getElementById('vac-conflict-inline').style.display = 'none';
-  _vacInlinePending = null; }
+  _vacInlinePending = null;
+}
 
 function forceVacInline() {
   if (!_vacInlinePending) return;
   doAddVacEvent(_vacInlinePending.name, _vacInlinePending.start, _vacInlinePending.end);
-  _vacInlinePending = null; }
+  _vacInlinePending = null;
+}
 
 function doAddVacEvent(name, start, end) {
   if (!state.vac.events) state.vac.events = [];
@@ -5572,7 +5582,7 @@ function showErr(el, msg) {
 }
 
 function deleteVacEvent(id) {
-  state.vac.events = (state.vac.events || []).filter(function(e) { return e.id !== id; });
+  state.vac.events = (state.vac.events || []).filter(e => e.id !== id);
   saveState();
   renderVacEvents();
 }
@@ -5674,7 +5684,7 @@ function addInvite() {
 }
 
 function deleteInvite(id) {
-  state.invites = (state.invites || []).filter(function(e) { return e.id !== id; });
+  state.invites = (state.invites || []).filter(e => e.id !== id);
   saveState();
   renderInvites();
 }
@@ -5777,8 +5787,8 @@ function openDaySummary(key, info) {
   body.innerHTML = '';
 
   // ── Recalcul frais depuis le state ──
-  var isBelWork  = (state.bel.work||[]).indexOf(key) !== -1;
-  var isSpWork   = (state.sp.work||[]).indexOf(key) !== -1;
+  var isBelWork  = (state.bel.work||[]).includes(key);
+  var isSpWork   = (state.sp.work||[]).includes(key);
   var isVac      = isDateInVacEvents(key);
   var isNounou   = isDateInNounou(key);
   var isNounouEd = isNounouEdouard(key);
@@ -5908,9 +5918,9 @@ function openDaySummary(key, info) {
           var sel_h = document.createElement('select');
           for (var hi = 0; hi < 24; hi++) {
             var opt = document.createElement('option');
-            opt.value = (('0' + (hi)).slice(-2));
-            opt.textContent = (('0' + (hi)).slice(-2));
-            if (f.value && f.value.split(':')[0] === (('0' + (hi)).slice(-2))) opt.selected = true;
+            opt.value = String(hi).padStart(2,'0');
+            opt.textContent = String(hi).padStart(2,'0');
+            if (f.value && f.value.split(':')[0] === String(hi).padStart(2,'0')) opt.selected = true;
             sel_h.appendChild(opt);
           }
           sel_h.style.cssText = 'flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:0.9rem;font-weight:600;outline:none;cursor:pointer';
@@ -5920,11 +5930,12 @@ function openDaySummary(key, info) {
           var sel_m = document.createElement('select');
           [0,15,30,45].forEach(function(mv) {
             var opt2 = document.createElement('option');
-            opt2.value = (('0' + (mv)).slice(-2));
-            opt2.textContent = (('0' + (mv)).slice(-2));
+            opt2.value = String(mv).padStart(2,'0');
+            opt2.textContent = String(mv).padStart(2,'0');
             if (f.value) {
               var cur_m = parseInt(f.value.split(':')[1]||'0');
-              if (Math.round(cur_m/15)*15%60 === mv) opt2.selected = true; }
+              if (Math.round(cur_m/15)*15%60 === mv) opt2.selected = true;
+            }
             sel_m.appendChild(opt2);
           });
           sel_m.style.cssText = 'flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:0.9rem;font-weight:600;outline:none;cursor:pointer';
@@ -6146,7 +6157,7 @@ function openDaySummary(key, info) {
         return;
       }
       if (!state.bel.work) state.bel.work = [];
-      if (!(state.bel.work.indexOf(key) !== -1)) state.bel.work.push(key);
+      if (!state.bel.work.includes(key)) state.bel.work.push(key);
       saveState(); closeDayMenu(); renderGlobal(); renderHomeRecap();
     }));
   }
@@ -6281,7 +6292,8 @@ function closeDayMenu() {
     menu.addEventListener('touchstart', function(e) {
       startY = e.touches[0].clientY;
       startScrollTop = menu.scrollTop;
-      dragging = false; }, { passive: true });
+      dragging = false;
+    }, { passive: true });
     menu.addEventListener('touchmove', function(e) {
       var dy = e.touches[0].clientY - startY;
       if (dy > 0 && menu.scrollTop <= 0) {
@@ -6299,7 +6311,8 @@ function closeDayMenu() {
       } else {
         menu.style.transform = '';
       }
-      dragging = false; }, { passive: true });
+      dragging = false;
+    }, { passive: true });
   });
 })();
 
@@ -6311,7 +6324,8 @@ function closeDayMenu() {
     if (!sheet) return;
     sheet.addEventListener('touchstart', function(e) {
       startY = e.touches[0].clientY;
-      dragging = false; }, { passive: true });
+      dragging = false;
+    }, { passive: true });
     sheet.addEventListener('touchmove', function(e) {
       var dy = e.touches[0].clientY - startY;
       if (dy > 0 && sheet.scrollTop <= 0) {
@@ -6330,7 +6344,8 @@ function closeDayMenu() {
       } else {
         sheet.style.transform = 'translateY(0)';
       }
-      dragging = false; }, { passive: true });
+      dragging = false;
+    }, { passive: true });
   });
 })();
 
@@ -6682,7 +6697,7 @@ function removeGardeFromModal() {
 function addGardeUnified() {} // kept for compatibility
 
 function deleteGarde(id) {
-  state.gardes = (state.gardes || []).filter(function(g) { return g.id !== id; });
+  state.gardes = (state.gardes || []).filter(g => g.id !== id);
   saveState();
   renderGardes();
   renderGardesCalendar();
@@ -6857,7 +6872,7 @@ function importData() {
     var parsed;
     // Try base64 decode
     try {
-      var decoded = decodeURIComponent(atob(raw).split('').map(function(c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join(''));
+      var decoded = decodeURIComponent(atob(raw).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
       parsed = JSON.parse(decoded);
     } catch(e1) {
       // Try simple atob without URI decode
@@ -6918,8 +6933,8 @@ var modalType = 'bel';
 
 function openQuickModal() {
   // Pre-fill start date to current viewed month
-  var y = state.view.global.y, m = state.view.global.m;
-  var pad = function(n) { return (('0' + (n)).slice(-2)); };
+  var { y, m } = state.view.global;
+  var pad = n => String(n).padStart(2,'0');
   document.getElementById('modal-name').value = '';
   document.getElementById('modal-error').style.display = 'none';
   selectModalType('bel');
@@ -6941,7 +6956,7 @@ function closeQuickModal(e) {
 
 function selectModalType(type) {
   modalType = type;
-  document.querySelectorAll('.modal-type-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('.modal-type-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.modal-type-btn[data-type="' + type + '"]').classList.add('active');
   document.getElementById('modal-name-field').style.display = (type === 'vac' || type === 'invites' || type === 'gardes' || type === 'memo') ? 'flex' : 'none';
   var modalLabel = document.getElementById('modal-name-label');
@@ -6990,7 +7005,7 @@ function submitQuickEvent() {
     while (cur <= endD) {
       var mon = getWeekMonday(new Date(cur));
       var wk = weekKey(mon);
-      if (!(state.garde.weeks.indexOf(wk) !== -1)) state.garde.weeks.push(wk);
+      if (!state.garde.weeks.includes(wk)) state.garde.weeks.push(wk);
       cur.setDate(cur.getDate() + 7);
     }
 
@@ -7002,7 +7017,7 @@ function submitQuickEvent() {
     if (!state.bel.work) state.bel.work = [];
     while (cur <= endD) {
       var k = dateKey(cur);
-      if (!(state.bel.work.indexOf(k) !== -1)) state.bel.work.push(k);
+      if (!state.bel.work.includes(k)) state.bel.work.push(k);
       cur.setDate(cur.getDate() + 1);
     }
 
@@ -7029,7 +7044,7 @@ function submitQuickEvent() {
     var endD = parseKey(end);
     while (cur <= endD) {
       var k = dateKey(cur);
-      if (!(state.sp.work.indexOf(k) !== -1)) state.sp.work.push(k);
+      if (!state.sp.work.includes(k)) state.sp.work.push(k);
       cur.setDate(cur.getDate() + 1);
     }
   }
@@ -7248,7 +7263,8 @@ function addNounouFromForm() {
   document.getElementById('nounou-form-nom-wrap').style.display = 'none';
   var list = document.getElementById('nounou-form-gardien-list');
   list.querySelectorAll('.sp-type-item').forEach(function(el){ el.classList.remove('selected'); });
-  _nounouFormGardien = null; _nounouFormNom = null; }
+  _nounouFormGardien = null; _nounouFormNom = null;
+}
 
 function openNounouDetailSheet(mode, y, m) {
   var menu     = document.getElementById('day-menu');
@@ -7269,7 +7285,8 @@ function openNounouDetailSheet(mode, y, m) {
   if (mode === 'conges') {
     var congesDays = (state.nounou && state.nounou.events || []).filter(function(ev) {
       var s = parseKey(ev.start);
-      return s >= firstDay && s <= lastDay && s.getDay() !== 0 && s.getDay() !== 6; }).sort(function(a,b){ return a.start.localeCompare(b.start); });
+      return s >= firstDay && s <= lastDay && s.getDay() !== 0 && s.getDay() !== 6;
+    }).sort(function(a,b){ return a.start.localeCompare(b.start); });
 
     if (congesDays.length === 0) {
       var empty = document.createElement('div');
@@ -7502,7 +7519,8 @@ function saveNounouRange(start, end, gardienId, nom) {
       return c.msgs.map(function(m) {
         var parts = m.split('\n');
         if (parts.length === 2) return '<b>' + dateLabel + '</b><br>' + parts[0] + '<br><em>' + parts[1] + '</em>';
-        return '<b>' + dateLabel + '</b> : ' + m; }).join('<br>');
+        return '<b>' + dateLabel + '</b> : ' + m;
+      }).join('<br>');
     });
     document.getElementById('nounou-conflict-text').innerHTML = '⚠️ Conflits :<br>' + lines.join('<br>');
     document.getElementById('nounou-conflict-warn').style.display = 'block';
@@ -7516,7 +7534,8 @@ function saveNounouRange(start, end, gardienId, nom) {
 function cancelNounouConflict() {
   var w = document.getElementById('nounou-conflict-warn');
   if (w) w.style.display = 'none';
-  window._nounouPendingSave = null; }
+  window._nounouPendingSave = null;
+}
 
 function forceNounouRange() {
   var p = window._nounouPendingSave;
@@ -7524,7 +7543,8 @@ function forceNounouRange() {
   var w = document.getElementById('nounou-conflict-warn');
   if (w) w.style.display = 'none';
   doSaveNounouRange(p.start, p.end, p.gardienId, p.nom);
-  window._nounouPendingSave = null; }
+  window._nounouPendingSave = null;
+}
 
 function doSaveNounouRange(start, end, gardienId, nom) {
   if (!state.nounou) state.nounou = { events: [] };
@@ -7614,7 +7634,8 @@ function buildGardienChoices(list, currentGardien) {
       var sel = el.dataset.gardien === gid;
       el.style.borderColor = sel ? 'var(--nounou)' : 'var(--border)';
       el.style.background  = sel ? 'var(--nounou-dim)' : 'transparent';
-      el.style.color       = sel ? 'var(--nounou)' : 'var(--text)'; });
+      el.style.color       = sel ? 'var(--nounou)' : 'var(--text)';
+    });
     if (gid === 'autres') {
       var existing = document.getElementById('nounou-nom-field');
       if (!existing) {
@@ -7633,7 +7654,8 @@ function buildGardienChoices(list, currentGardien) {
     } else {
       var old = document.getElementById('nounou-nom-field');
       if (old) old.remove();
-      nounouSelectedNom = null; }
+      nounouSelectedNom = null;
+    }
     nounouSelectedGardien = gid;
   }
 
@@ -7760,7 +7782,7 @@ function renderNounouEventsList() {
 }
 
 function deleteNounouPeriod(ids) {
-  state.nounou.events = (state.nounou.events || []).filter(function(e){ return !(ids.indexOf(e.id) !== -1); });
+  state.nounou.events = (state.nounou.events || []).filter(function(e){ return !ids.includes(e.id); });
   saveState();
   renderNounouCalendar();
   renderGlobal();
@@ -7808,8 +7830,8 @@ function getSpDispos(y, m) {
   var cur = new Date(y, m, 1);
   while (cur <= lastDay) {
     var key = dateKey(cur);
-    var isWork      = (state.sp.work || []).indexOf(key) !== -1;
-    var isBelWork   = (state.bel.work || []).indexOf(key) !== -1;
+    var isWork      = (state.sp.work || []).includes(key);
+    var isBelWork   = (state.bel.work || []).includes(key);
     var isVac       = isDateInVacEvents(key);
     var isNounouEd  = isNounouEdouard ? isNounouEdouard(key) : false;
     var isGardeMed  = (state.gardes || []).some(function(g){ return key >= g.start && key <= g.end; });
@@ -8536,7 +8558,8 @@ function closeSidebar() {
       var dx = e.changedTouches[0].clientX - startX;
       if (dx > 80) closeSidebar();
       else sidebar.style.transform = '';
-      dragging = false; }, { passive: true });
+      dragging = false;
+    }, { passive: true });
   });
 })();
 
@@ -8602,7 +8625,8 @@ function renderDedSp() {
   (state.sp.work||[]).forEach(function(k) {
     if (parseKey(k).getFullYear() !== y) return;
     var h = getSpHours(k);
-    if (k < todayKey) spRealized += h; else spPlanned += h; });
+    if (k < todayKey) spRealized += h; else spPlanned += h;
+  });
   var spToProgram = Math.max(0, 372 - spRealized - spPlanned);
 
   var statsBar = document.createElement('div');
@@ -8626,7 +8650,7 @@ function renderDedSp() {
   }
 
   var cy = today.getFullYear();
-  statsBar.appendChild(stat(spRealized, 'Réalisées', 'var(--sp)', function(){ openSpDetailSheet('realized', cy); }))
+  statsBar.appendChild(stat(spRealized, 'Réalisées', 'var(--sp)', function(){ openSpDetailSheet('realized', cy); }));
   statsBar.appendChild(sep());
   statsBar.appendChild(stat(spPlanned, 'Programmées', spPlanned > 0 ? 'rgba(212,58,0,0.6)' : 'var(--muted)', function(){ openSpDetailSheet('planned', cy); }));
   statsBar.appendChild(sep());
@@ -8724,6 +8748,33 @@ try {
   }
 
   // Swipe sur les wrappers stables (une seule fois)
-  addSwipe('bel-wrapper',           function(){ changeMonth('bel',1); },  function(){ changeMonth('bel',-1); })
+  addSwipe('bel-wrapper',           function(){ changeMonth('bel',1); },  function(){ changeMonth('bel',-1); });
   addSwipe('bel-wrapper-ded',       function(){ changeMonth('bel',1); },  function(){ changeMonth('bel',-1); });
-  addSwipe('sp-wrapper',            function(){ changeMonth('sp',1); },   fun
+  addSwipe('sp-wrapper',            function(){ changeMonth('sp',1); },   function(){ changeMonth('sp',-1); });
+  addSwipe('sp-wrapper-ded',        function(){ changeMonth('sp',1); },   function(){ changeMonth('sp',-1); });
+  addSwipe('subtab-gardes-content', function(){ changeGardesMonth(1); },  function(){ changeGardesMonth(-1); });
+  addSwipe('subtab-garde-content',  function(){ changeNounouMonth(1); },  function(){ changeNounouMonth(-1); });
+
+  pullFromCloud(function(updated) {
+    if (updated) {
+      if (!state.bel.work) state.bel.work = [];
+      if (!state.vac.events) state.vac.events = [];
+      if (!state.invites) state.invites = [];
+      if (!state.gardes) state.gardes = [];
+      if (!state.view.global) state.view.global = { y: today.getFullYear(), m: today.getMonth() };
+      renderHomeRecap();
+      renderGlobal();
+    }
+  });
+  setTimeout(startRealtimeSync, 500);
+} catch(e) {
+  document.body.innerHTML = '<div style="padding:40px;color:#333;font-family:sans-serif;background:#eef0f5;min-height:100vh"><h2 style="color:#d43a00">Erreur au chargement</h2><p style="margin-top:8px;color:#666;word-break:break-all">' + e.message + '</p><p style="margin-top:8px;color:#999;font-size:0.8rem">' + (e.stack||'').substring(0,200) + '</p><button onclick="localStorage.clear();location.reload()" style="margin-top:20px;padding:10px 20px;background:#4e9af1;border:none;border-radius:8px;color:#fff;cursor:pointer">Réinitialiser</button></div>';
+}
+</script>
+<!-- ══ FORM MODALE LÉGÈRE ══ -->
+<div id="form-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeFormModal()">
+  <div class="modal-box" id="form-modal-box" style="max-width:420px"></div>
+</div>
+
+</body>
+</html>
