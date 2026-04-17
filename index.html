@@ -671,6 +671,9 @@
   .global-big-day.g-sp    { background: var(--sp-dim); }
   .global-big-day.g-both  { background: linear-gradient(135deg, var(--bel-dim) 50%, var(--sp-dim) 50%); }
   .global-big-day.g-vac   { background: var(--vac-dim); }
+  .global-big-day.g-vac-bel   { background: linear-gradient(135deg, var(--vac-dim) 50%, var(--bel-dim) 50%); }
+  .global-big-day.g-vac-sp    { background: linear-gradient(135deg, var(--vac-dim) 50%, var(--sp-dim) 50%); }
+  .global-big-day.g-vac-garde { background: linear-gradient(135deg, var(--vac-dim) 50%, var(--gardes-dim) 50%); }
   .global-big-day.g-garde { background: var(--garde-dim); }
   .global-big-day.g-gardes { background: var(--gardes-dim); }
   .global-big-day.g-gardes .gbd-label { background: rgba(204,0,0,0.45); color: #fff; }
@@ -685,6 +688,9 @@
   .global-big-day.g-sp    .gbd-label { background: rgba(241,124,78,0.25); color: var(--sp); }
   .global-big-day.g-both  .gbd-label { background: rgba(255,255,255,0.1); color: var(--text); }
   .global-big-day.g-vac   .gbd-label { background: rgba(78,201,160,0.25); color: var(--vac); }
+  .global-big-day.g-vac-bel   .gbd-label,
+  .global-big-day.g-vac-sp    .gbd-label,
+  .global-big-day.g-vac-garde .gbd-label { background: rgba(255,255,255,0.1); color: var(--text); }
   .global-big-day.g-garde .gbd-label { background: rgba(201,124,241,0.25); color: var(--garde); }
   .global-big-day.g-dispo .gbd-label { color: var(--muted); }
 
@@ -1303,6 +1309,10 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </span>
   </button>
+  <button class="bottom-tab" id="tab-conflits" onclick="showPage('conflits')" ontouchend="event.preventDefault();showPage('conflits')">
+    <span class="bottom-tab-icon" style="position:relative"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span id="tab-conflits-badge" style="display:none;position:absolute;top:-4px;right:-6px;background:#f87171;color:#fff;font-size:0.58rem;font-weight:700;min-width:14px;height:14px;border-radius:7px;padding:0 4px;line-height:14px;text-align:center"></span></span>
+    <span class="bottom-tab-label">Conflits</span>
+  </button>
   <button class="bottom-tab" id="tab-menu" onclick="openSidebar()" ontouchend="event.preventDefault();openSidebar()">
     <span class="bottom-tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></span>
     <span class="bottom-tab-label">Menu</span>
@@ -1339,15 +1349,6 @@
     </button>
     <button class="sidebar-item" onclick="closeSidebar();showDedicatedPage('memos')">
       <span class="sidebar-item-icon">📌</span> Mémos
-    </button>
-  </div>
-
-  <div class="sidebar-section">
-    <button class="sidebar-item" onclick="closeSidebar();showPage('autres');setTimeout(function(){showAutresSub('conflits');},80)">
-      <span class="sidebar-item-icon">⚠️</span> Conflits <span id="sidebar-conflict-badge" style="color:var(--muted);font-size:0.78rem;font-weight:400;margin-left:4px"></span>
-    </button>
-    <button class="sidebar-item" onclick="closeSidebar();showPage('autres');setTimeout(function(){showAutresSub('avenir');},80)">
-      <span class="sidebar-item-icon">📅</span> À venir
     </button>
   </div>
 
@@ -1448,30 +1449,10 @@
 <!-- ══ PLANNINGS (redirects vers pages dédiées) ══ -->
 <div id="page-plannings" class="page"></div>
 
-<!-- ══ AUTRES ══ -->
-<div id="page-autres" class="page">
-  <div class="sub-tabs">
-    <button class="sub-tab active" id="subtab-autres-conflits" onclick="showAutresSub('conflits')">⚠️ Conflits</button>
-    <button class="sub-tab" id="subtab-autres-avenir" onclick="showAutresSub('avenir')">📋 À venir</button>
-  </div>
-  <div id="autres-conflits-content">
-    <div id="conflits-list"></div>
-  </div>
-  <div id="autres-avenir-content" style="display:none">
-    <div id="avenir-recap"></div>
-  </div>
-</div>
-
 <!-- ══ CONFLITS (standalone) ══ -->
 <div id="page-conflits" class="page">
   <div class="page-header"><div class="page-title">⚠️ Conflits</div></div>
   <div id="conflits-list-standalone"></div>
-</div>
-
-<!-- ══ À VENIR (standalone) ══ -->
-<div id="page-avenir" class="page">
-  <div class="page-header"><div class="page-title">📋 À venir</div></div>
-  <div id="avenir-recap-standalone"></div>
 </div>
 
 <!-- ══ PLANNINGS (accordions) ══ -->
@@ -2087,8 +2068,6 @@ function saveState() {
 }
 
 function renderConflitsBadgeOnly() {
-  var countEl = document.getElementById('home-conflict-count');
-  if (!countEl) return;
   var count = 0;
   var cur = new Date(today);
   for (var i = 0; i < 90; i++) {
@@ -2107,7 +2086,14 @@ function renderConflitsBadgeOnly() {
     if (detectDayConflicts(k, evs).length > 0) count++;
     cur.setDate(cur.getDate()+1);
   }
-  countEl.textContent = count === 0 ? 'Aucun conflit' : count + ' conflit' + (count>1?'s':'') + ' détecté' + (count>1?'s':'');
+  window._conflictCount = count;
+  var countEl = document.getElementById('home-conflict-count');
+  if (countEl) countEl.textContent = count === 0 ? 'Aucun conflit' : count + ' conflit' + (count>1?'s':'') + ' détecté' + (count>1?'s':'');
+  var tabBadge = document.getElementById('tab-conflits-badge');
+  if (tabBadge) {
+    if (count > 0) { tabBadge.textContent = count; tabBadge.style.display = 'block'; }
+    else           { tabBadge.style.display = 'none'; }
+  }
 }
 
 function pushToCloud() {
@@ -2202,6 +2188,7 @@ function showPage(name) {
   var tabName = name;
   if (name === 'home') tabName = 'home';
   else if (name === 'global') tabName = 'global';
+  else if (name === 'conflits') tabName = 'conflits';
   else tabName = 'menu';
   var tabEl = document.getElementById('tab-' + tabName);
   if (tabEl) tabEl.classList.add('active');
@@ -2219,9 +2206,7 @@ function showPage(name) {
   if (name === 'global')    { goToToday(); }
   if (name === 'gestion')   { renderGestionCounts(); }
   if (name === 'plannings') { renderAccordionSubtitles(); }
-  if (name === 'autres')    { showAutresSub('conflits'); }
   if (name === 'conflits')  { renderConflitsList(); }
-  if (name === 'avenir')    { renderAvenirRecap(); }
 }
 
 // ═══════════════════════════════════════════════════
@@ -2943,15 +2928,6 @@ function detectDayConflicts(key, evs) {
   return msgs;
 }
 
-function showAutresSub(sub) {
-  ['conflits','avenir'].forEach(function(s) {
-    document.getElementById('subtab-autres-' + s).classList.toggle('active', s === sub);
-    document.getElementById('autres-' + s + '-content').style.display = s === sub ? 'block' : 'none';
-  });
-  if (sub === 'conflits') renderConflitsList();
-  if (sub === 'avenir')   renderAvenirRecap();
-}
-
 function showGestionTab(tab) {
   // Legacy — now just renders counts
   renderGestionCounts();
@@ -2991,9 +2967,7 @@ function renderGestionCounts() {
 }
 
 function renderConflitsList() {
-  var el = document.getElementById('conflits-list');
-  if (!el) return;
-  el.innerHTML = '';
+  var el = document.getElementById('conflits-list-standalone');
 
   // Scan next 90 days
   var conflicts = [];
@@ -3020,10 +2994,19 @@ function renderConflitsList() {
     cur.setDate(cur.getDate()+1);
   }
 
-  // Update home badge count
+  // Update counts everywhere
   window._conflictCount = conflicts.length;
   var countEl = document.getElementById('home-conflict-count');
   if (countEl) countEl.textContent = conflicts.length === 0 ? 'Aucun conflit' : conflicts.length + ' conflit' + (conflicts.length>1?'s':'') + ' détecté' + (conflicts.length>1?'s':'');
+  var tabBadge = document.getElementById('tab-conflits-badge');
+  if (tabBadge) {
+    if (conflicts.length > 0) { tabBadge.textContent = conflicts.length; tabBadge.style.display = 'block'; }
+    else                      { tabBadge.style.display = 'none'; }
+  }
+
+  // Render the list only if the page element exists
+  if (!el) return;
+  el.innerHTML = '';
 
   if (conflicts.length === 0) {
     el.innerHTML = '<div style="padding:32px 0;text-align:center;color:var(--muted)">✅ Aucun conflit détecté sur les 3 prochains mois</div>';
@@ -3074,13 +3057,6 @@ function renderConflitsList() {
 
     el.appendChild(item);
   });
-}
-
-function renderAvenirRecap() {
-  var el = document.getElementById('avenir-recap');
-  if (!el) return;
-  el.innerHTML = '';
-  renderHomeRecap_into(el);
 }
 
 function renderTodayTomorrow() {
@@ -4086,33 +4062,43 @@ function checkConflict(key, skipType) {
   if (skipType === 'bel' || skipType === 'sp' || skipType === 'garde') {
     var typeLabel = skipType === 'bel' ? 'Belharra' : skipType === 'sp' ? 'St Palais' : 'une garde médicale';
     var typeShort = skipType === 'bel' ? 'Belharra' : skipType === 'sp' ? 'St Palais' : 'une garde';
-    if (isVac)  msgs.push('Vous avez déjà des vacances' + vacName + ' ce jour — ajouter également ' + typeLabel + ' ?');
-    if (isNou)  msgs.push('Édouard a déjà un congé nounou ce jour — ajouter également ' + typeLabel + ' ?');
+    if (isVac)  msgs.push('Édouard est déjà en vacances' + vacName + ' ce jour — ajouter également ' + typeLabel + ' ?');
+    if (isNou)  msgs.push('Édouard est censé garder Adèle ce jour — ajouter également ' + typeLabel + ' ?');
     if (isAstreinte) {
-      var astrDetail = dow === 6 ? 'une astreinte (garde le dimanche)' : 'une astreinte (garde le samedi)';
-      msgs.push('Vous avez déjà ' + astrDetail + ' — ajouter également ' + typeLabel + ' ?');
+      var astrDetail = dow === 6 ? 'd\'astreinte (garde le dimanche)' : 'd\'astreinte (garde le samedi)';
+      msgs.push('Édouard est ' + astrDetail + ' — ajouter également ' + typeLabel + ' ?');
     }
-    if (skipType === 'bel'   && isSP)    msgs.push('Vous avez déjà St Palais ce jour\nAjouter également Belharra ?');
-    if (skipType === 'bel'   && isGarde) msgs.push('Vous avez déjà une garde médicale ce jour\nAjouter également Belharra ?');
-    if (skipType === 'sp'    && isBel)   msgs.push('Vous avez déjà Belharra ce jour\nAjouter également St Palais ?');
-    if (skipType === 'sp'    && isGarde) msgs.push('Vous avez déjà une garde médicale ce jour\nAjouter également St Palais ?');
-    if (skipType === 'garde' && isBel)   msgs.push('Vous avez déjà Belharra ce jour\nAjouter également une garde ?');
-    if (skipType === 'garde' && isSP)    msgs.push('Vous avez déjà St Palais ce jour\nAjouter également une garde ?');
+    if (skipType === 'bel'   && isSP)    msgs.push('Édouard travaille déjà à St Palais ce jour\nAjouter également Belharra ?');
+    if (skipType === 'bel'   && isGarde) msgs.push('Édouard a déjà une garde médicale ce jour\nAjouter également Belharra ?');
+    if (skipType === 'sp'    && isBel)   msgs.push('Édouard travaille déjà à Belharra ce jour\nAjouter également St Palais ?');
+    if (skipType === 'sp'    && isGarde) msgs.push('Édouard a déjà une garde médicale ce jour\nAjouter également St Palais ?');
+    if (skipType === 'garde' && isBel)   msgs.push('Édouard travaille déjà à Belharra ce jour\nAjouter également une garde ?');
+    if (skipType === 'garde' && isSP)    msgs.push('Édouard travaille déjà à St Palais ce jour\nAjouter également une garde ?');
   } else if (skipType === 'vac') {
-    if (isBel)        msgs.push('Vous avez déjà Belharra ce jour\nAjouter également des vacances ?');
-    if (isSP)         msgs.push('Vous avez déjà St Palais ce jour\nAjouter également des vacances ?');
-    if (isGarde)      msgs.push('Vous avez déjà une garde médicale ce jour\nAjouter également des vacances ?');
+    if (isGarde) {
+      var gEv = (state.gardes||[]).find(function(g){ return key >= g.start && key <= g.end; });
+      var gLieu = gEv && gEv.lieu === 'sp' ? 'St Palais' : 'Belharra';
+      msgs.push('Édouard a déjà une garde (' + gLieu + ') ce jour\nAjouter également des vacances ?');
+    } else {
+      if (isBel) msgs.push('Édouard travaille déjà à Belharra ce jour\nAjouter également des vacances ?');
+      if (isSP)  msgs.push('Édouard travaille déjà à St Palais ce jour\nAjouter également des vacances ?');
+    }
     if (isAstreinte) {
-      var astrDetail = dow === 6 ? 'une astreinte (garde le dimanche)' : 'une astreinte (garde le samedi)';
-      msgs.push('Vous avez déjà ' + astrDetail + ' — ajouter également des vacances ?');
+      var astrDetail = dow === 6 ? 'd\'astreinte (garde le dimanche)' : 'd\'astreinte (garde le samedi)';
+      msgs.push('Édouard est ' + astrDetail + ' — ajouter également des vacances ?');
     }
   } else if (skipType === 'nounou') {
-    if (isBel)        msgs.push('Édouard a déjà Belharra ce jour\nAjouter également un congé nounou ?');
-    if (isSP)         msgs.push('Édouard a déjà St Palais ce jour\nAjouter également un congé nounou ?');
-    if (isGarde)      msgs.push('Édouard a déjà une garde médicale ce jour\nAjouter également un congé nounou ?');
+    if (isGarde) {
+      var gEv2 = (state.gardes||[]).find(function(g){ return key >= g.start && key <= g.end; });
+      var gLieu2 = gEv2 && gEv2.lieu === 'sp' ? 'St Palais' : 'Belharra';
+      msgs.push('Édouard a déjà une garde (' + gLieu2 + ') ce jour\nAjouter également la garde d\'Adèle ?');
+    } else {
+      if (isBel) msgs.push('Édouard travaille déjà à Belharra ce jour\nAjouter également la garde d\'Adèle ?');
+      if (isSP)  msgs.push('Édouard travaille déjà à St Palais ce jour\nAjouter également la garde d\'Adèle ?');
+    }
     if (isAstreinte) {
-      var astrDetail = dow === 6 ? 'une astreinte (garde le dimanche)' : 'une astreinte (garde le samedi)';
-      msgs.push('Édouard a déjà ' + astrDetail + ' ce jour — ajouter également un congé nounou ?');
+      var astrDetail = dow === 6 ? 'd\'astreinte (garde le dimanche)' : 'd\'astreinte (garde le samedi)';
+      msgs.push('Édouard est ' + astrDetail + ' ce jour — ajouter également la garde d\'Adèle ?');
     }
   }
 
@@ -4470,6 +4456,14 @@ function renderGlobalEventsList(y, m) {
     }
   });
 
+  // Vacances
+  (state.vac && state.vac.events || []).forEach(function(ev) {
+    if (parseKey(ev.start) <= lastDay && parseKey(ev.end) >= firstDay) {
+      var isNow = ev.start <= todayKey && ev.end >= todayKey;
+      items.push({ sort: ev.start, isNow: isNow, type: 'vac', ev: ev });
+    }
+  });
+
   if (items.length === 0) return;
 
   // Tri : aujourd'hui en premier, puis par date
@@ -4499,6 +4493,12 @@ function renderGlobalEventsList(y, m) {
       nameStr = item.p.label;
       var s = parseKey(item.p.startDate), e = parseKey(item.p.endDate);
       dateStr = item.isNow ? 'En ce moment' : s.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + (item.p.startDate !== item.p.endDate ? ' → ' + e.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '');
+    } else if (item.type === 'vac') {
+      color = 'var(--vac)';
+      catText = 'Vacances';
+      nameStr = item.ev.name || '';
+      var s = parseKey(item.ev.start), e = parseKey(item.ev.end);
+      dateStr = item.isNow ? 'En ce moment' : s.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + (item.ev.start !== item.ev.end ? ' → ' + e.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '');
     } else {
       color = 'var(--memo)';
       catText = 'Mémo';
@@ -5140,7 +5140,10 @@ function renderGlobal() {
 
     // ── Priorité 1 : Vacances (fond vert) — sauf si filtre nounou seul ET jour a nounou ──
     if (isVac && !(nounouOnly && isNounou)) {
-      el.classList.add('g-vac');
+      if (isGardeMed)      { el.classList.add('g-vac-garde'); }
+      else if (isBelWork)  { el.classList.add('g-vac-bel'); label = 'Belharra'; }
+      else if (isSpWork)   { el.classList.add('g-vac-sp');  label = 'St Palais'; }
+      else                 { el.classList.add('g-vac'); }
     }
     // ── Priorité 2 : Garde ──
     else if (isGardeMed && !nounouOnly) {
@@ -5284,10 +5287,35 @@ function renderGlobal() {
         var startKey = dateKey(cur);
         var endKey   = dateKey(segEnd);
 
-        var startCell = gridEl.querySelector('[data-daykey="' + startKey + '"]' );
-        var endCell   = gridEl.querySelector('[data-daykey="' + endKey + '"]' );
+        // Build runs of consecutive "pure vac" days (skip cells in combination
+        // with bel/sp/garde, since those cells show a diagonal split and the
+        // vacances name is shown in the legend below instead).
+        var runs = [];
+        var runStart = null, runEnd = null;
+        var d = new Date(cur);
+        while (d <= segEnd) {
+          var k = dateKey(d);
+          var cell = gridEl.querySelector('[data-daykey="' + k + '"]');
+          var isPureVac = cell && cell.classList.contains('g-vac') &&
+                          !cell.classList.contains('g-vac-bel') &&
+                          !cell.classList.contains('g-vac-sp') &&
+                          !cell.classList.contains('g-vac-garde');
+          if (isPureVac) {
+            if (!runStart) runStart = k;
+            runEnd = k;
+          } else if (runStart) {
+            runs.push({ start: runStart, end: runEnd });
+            runStart = null; runEnd = null;
+          }
+          d.setDate(d.getDate() + 1);
+        }
+        if (runStart) runs.push({ start: runStart, end: runEnd });
 
-        if (startCell && endCell) {
+        runs.forEach(function(run) {
+          var startCell = gridEl.querySelector('[data-daykey="' + run.start + '"]');
+          var endCell   = gridEl.querySelector('[data-daykey="' + run.end + '"]');
+          if (!startCell || !endCell) return;
+
           var gridRect  = gridEl.getBoundingClientRect();
           var startRect = startCell.getBoundingClientRect();
           var endRect   = endCell.getBoundingClientRect();
@@ -5308,7 +5336,7 @@ function renderGlobal() {
           bandeau.style.lineHeight = height + 'px';
 
           gridWrap.appendChild(bandeau);
-        }
+        });
 
         // Advance to next row
         cur.setDate(segEnd.getDate() + 1);
@@ -5700,30 +5728,45 @@ function openDaySummary(key, info) {
 
   // ── Section : événements du jour avec croix de suppression ──
   if (hasEvents) {
+    var eventsSection = document.createElement('div');
+    eventsSection.style.cssText = 'padding:10px 12px 4px';
+
+    var evLabel = document.createElement('div');
+    evLabel.style.cssText = 'font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:10px';
+    evLabel.textContent = 'Événements';
+    eventsSection.appendChild(evLabel);
+
     var eventsWrap = document.createElement('div');
-    eventsWrap.style.cssText = 'padding:10px 12px 4px;display:flex;flex-direction:column;gap:6px';
+    eventsWrap.style.cssText = 'display:flex;flex-direction:column;gap:6px';
+    eventsSection.appendChild(eventsWrap);
 
     function makeEventChip(icon, label, color, dim, onDelete, onEdit) {
       var chip = document.createElement('div');
       chip.style.display = 'flex';
       chip.style.alignItems = 'center';
-      chip.style.gap = '10px';
-      chip.style.padding = '10px 12px';
-      chip.style.borderRadius = '12px';
-      chip.style.background = dim;
-      chip.style.border = '1px solid ' + color;
+      chip.style.gap = '8px';
+      chip.style.padding = '12px 12px 12px 0';
+      chip.style.borderRadius = '10px';
+      chip.style.background = '#fff';
+      chip.style.border = '1px solid var(--border)';
       chip.style.marginBottom = '2px';
+      chip.style.overflow = 'hidden';
+      chip.style.position = 'relative';
+      // Left accent bar (colored)
+      var bar = document.createElement('span');
+      bar.style.cssText = 'width:4px;align-self:stretch;flex-shrink:0;background:' + color + ';border-radius:2px 0 0 2px';
+      chip.appendChild(bar);
       var ic = document.createElement('span');
       if (icon === '●') {
-        ic.style.cssText = 'width:9px;height:9px;border-radius:50%;background:' + color + ';flex-shrink:0;display:inline-block';
+        ic.style.cssText = 'width:9px;height:9px;border-radius:50%;background:' + color + ';flex-shrink:0;display:inline-block;margin-left:8px';
       } else {
-        ic.textContent = icon; ic.style.fontSize = '1rem';
+        ic.textContent = icon; ic.style.fontSize = '1rem'; ic.style.marginLeft = '8px';
       }
       var lbl = document.createElement('div');
       lbl.style.flex = '1';
-      lbl.style.fontSize = '0.85rem';
-      lbl.style.fontWeight = '600';
-      lbl.style.color = color === 'var(--gardes)' ? 'var(--gardes)' : 'var(--text)';
+      lbl.style.fontSize = '0.88rem';
+      lbl.style.fontWeight = '500';
+      lbl.style.color = 'var(--text)';
       lbl.textContent = label;
       chip.appendChild(ic); chip.appendChild(lbl);
       if (onEdit) {
@@ -5731,6 +5774,7 @@ function openDaySummary(key, info) {
         editBtn.textContent = '✎';
         editBtn.style.background = 'none';
         editBtn.style.border = 'none';
+        editBtn.style.color = 'var(--muted)';
         editBtn.style.fontSize = '0.9rem';
         editBtn.style.cursor = 'pointer';
         editBtn.style.padding = '0 4px';
@@ -5753,36 +5797,32 @@ function openDaySummary(key, info) {
         del.style.flexShrink = '0';
 
         var confirmDelete = function() {
-          body.innerHTML = '';
-          var wrap = document.createElement('div');
-          wrap.style.cssText = 'padding:20px 14px 16px;display:flex;flex-direction:column;gap:14px;text-align:center';
+          // Inline confirmation inside the chip (same pattern as home page)
+          chip.innerHTML = '';
+          chip.style.justifyContent = 'space-between';
+          chip.style.padding = '10px 12px';
 
-          var msg = document.createElement('div');
-          msg.style.cssText = 'font-size:0.95rem;font-weight:600;color:var(--text)';
-          msg.textContent = 'Supprimer cet événement ?';
+          var msg = document.createElement('span');
+          msg.style.cssText = 'font-size:0.82rem;font-weight:600;color:var(--text);flex:1';
+          msg.textContent = 'Supprimer ?';
 
-          var sub = document.createElement('div');
-          sub.style.cssText = 'font-size:0.8rem;color:var(--muted)';
-          sub.textContent = label;
-
-          var btns = document.createElement('div');
-          btns.style.cssText = 'display:flex;gap:8px';
+          var btnWrap = document.createElement('div');
+          btnWrap.style.cssText = 'display:flex;gap:6px;flex-shrink:0';
 
           var cancel = document.createElement('button');
-          cancel.textContent = 'Annuler';
-          cancel.style.cssText = 'flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:\'DM Sans\',sans-serif;font-size:0.88rem;cursor:pointer';
+          cancel.textContent = 'Non';
+          cancel.style.cssText = 'padding:4px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:\'DM Sans\',sans-serif;font-size:0.8rem;cursor:pointer';
           cancel.addEventListener('click', function(){ openDaySummary(key, info); });
           cancel.addEventListener('touchend', function(e){ e.preventDefault(); openDaySummary(key, info); });
 
-          var confirm = document.createElement('button');
-          confirm.textContent = 'Supprimer';
-          confirm.style.cssText = 'flex:1;padding:12px;border-radius:10px;border:none;background:#f87171;color:#fff;font-family:\'DM Sans\',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer';
-          confirm.addEventListener('click', function(){ onDelete(); });
-          confirm.addEventListener('touchend', function(e){ e.preventDefault(); onDelete(); });
+          var confirmBtn = document.createElement('button');
+          confirmBtn.textContent = 'Oui';
+          confirmBtn.style.cssText = 'padding:4px 12px;border-radius:8px;border:none;background:#f87171;color:#fff;font-family:\'DM Sans\',sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer';
+          confirmBtn.addEventListener('click', function(){ onDelete(); });
+          confirmBtn.addEventListener('touchend', function(e){ e.preventDefault(); onDelete(); });
 
-          btns.appendChild(cancel); btns.appendChild(confirm);
-          wrap.appendChild(msg); wrap.appendChild(sub); wrap.appendChild(btns);
-          body.appendChild(wrap);
+          btnWrap.appendChild(cancel); btnWrap.appendChild(confirmBtn);
+          chip.appendChild(msg); chip.appendChild(btnWrap);
         };
 
         del.addEventListener('click', function(e){ e.stopPropagation(); confirmDelete(); });
@@ -6007,7 +6047,7 @@ function openDaySummary(key, info) {
       }));
     }
 
-    body.appendChild(eventsWrap);
+    body.appendChild(eventsSection);
 
     // Séparateur
     var sep = document.createElement('div');
@@ -6016,28 +6056,31 @@ function openDaySummary(key, info) {
   }
 
   // ── Section : boutons Ajouter (seulement ce qui n'est pas déjà là) ──
+  var addSection = document.createElement('div');
+  addSection.style.cssText = 'padding:6px 12px 16px';
+
+  var addLabel = document.createElement('div');
+  addLabel.style.cssText = 'font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:10px';
+  addLabel.textContent = 'Ajouter un événement';
+  addSection.appendChild(addLabel);
+
   var addWrap = document.createElement('div');
-  addWrap.style.cssText = 'padding:10px 12px 16px;display:flex;flex-wrap:wrap;gap:8px';
+  addWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px';
+  addSection.appendChild(addWrap);
 
   function makeAddBtn(icon, label, color, fn) {
     var btn = document.createElement('button');
-    btn.style.display = 'flex';
-    btn.style.alignItems = 'center';
-    btn.style.gap = '6px';
     btn.style.padding = '8px 14px';
     btn.style.borderRadius = '20px';
-    btn.style.border = '1px solid ' + color;
-    btn.style.background = 'transparent';
-    btn.style.color = color;
+    btn.style.border = '1px solid transparent';
+    btn.style.background = 'var(--surface2)';
+    btn.style.color = 'var(--text)';
     btn.style.fontFamily = "'DM Sans', sans-serif";
     btn.style.fontSize = '0.82rem';
     btn.style.fontWeight = '600';
     btn.style.cursor = 'pointer';
     btn.style.webkitTapHighlightColor = 'transparent';
-    var iconHtml = icon === '●'
-      ? '<span style="width:8px;height:8px;border-radius:50%;background:' + color + ';display:inline-block;flex-shrink:0"></span>'
-      : '<span>' + icon + '</span>';
-    btn.innerHTML = iconHtml + label;
+    btn.textContent = label;
     btn.addEventListener('click', fn);
     btn.addEventListener('touchend', function(e){ e.preventDefault(); fn(); });
     return btn;
@@ -6088,7 +6131,7 @@ function openDaySummary(key, info) {
     closeDayMenu(); openQuickModalForDay(key, 'memo');
   }));
 
-  if (addWrap.children.length > 0 && !info.homeOnly && !info.conflictOnly) body.appendChild(addWrap);
+  if (addWrap.children.length > 0 && !info.homeOnly && !info.conflictOnly) body.appendChild(addSection);
 
   menu.classList.add('open');
   backdrop.style.display = 'block';
@@ -8293,17 +8336,6 @@ function showFormConflict(msg, onForce) {
 function openSidebar() {
   document.getElementById('sidebar').classList.add('open');
   document.getElementById('sidebar-overlay').classList.add('open');
-  // Update conflict badge
-  var badge = document.getElementById('sidebar-conflict-badge');
-  if (badge) {
-    var n = window._conflictCount || 0;
-    if (!n) {
-      // Fallback: parse from DOM
-      var countEl = document.getElementById('home-conflict-count');
-      if (countEl) { var m = (countEl.textContent||'').match(/(\d+)/); if (m) n = parseInt(m[1]); }
-    }
-    badge.textContent = n > 0 ? '(' + n + ')' : '';
-  }
 }
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
