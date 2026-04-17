@@ -3464,27 +3464,35 @@ function renderHomeMonthEvents() {
   var horizon = new Date(today);
   horizon.setDate(today.getDate() + 30); // 30 jours glissants
 
+  // Helper: date relative → "Aujourd'hui", "Demain", "dans X jours", "dans X mois"
+  function relativeDate(startKey) {
+    var sd = parseKey(startKey);
+    sd.setHours(0,0,0,0);
+    var td = new Date(today);
+    td.setHours(0,0,0,0);
+    var diffDays = Math.round((sd - td) / 86400000);
+    if (diffDays <= 0) return 'Aujourd\'hui';
+    if (diffDays === 1) return 'Demain';
+    if (diffDays < 30)  return 'dans ' + diffDays + ' jours';
+    var months = Math.round(diffDays / 30);
+    return 'dans ' + months + ' mois';
+  }
+
   var chips = [];
 
   // Invités à venir
   (state.invites || []).forEach(function(ev) {
     if (ev.end < todayKey) return;
-    var s = parseKey(ev.start), e = parseKey(ev.end);
     var isNow = ev.start <= todayKey && ev.end >= todayKey;
-    var dateStr = isNow ? 'En ce moment' :
-      s.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) +
-      (ev.start !== ev.end ? ' → ' + e.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) : '');
+    var dateStr = isNow ? 'En ce moment' : relativeDate(ev.start);
     chips.push({ icon:'🏠', label: ev.name || 'Invités', date: dateStr, color:'var(--invites)', dim:'var(--invites-dim)', now: isNow, sort: ev.start, type:'invite', ev: ev });
   });
 
   // Vacances à venir
   (state.vac && state.vac.events || []).forEach(function(ev) {
     if (ev.end < todayKey) return;
-    var s = parseKey(ev.start), e = parseKey(ev.end);
     var isNow = ev.start <= todayKey && ev.end >= todayKey;
-    var dateStr = isNow ? 'En ce moment' :
-      s.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) +
-      ' → ' + e.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
+    var dateStr = isNow ? 'En ce moment' : relativeDate(ev.start);
     chips.push({ icon:'🌴', label: ev.name || 'Vacances', date: dateStr, color:'var(--vac)', dim:'var(--vac-dim)', now: isNow, sort: ev.start, type:'vac', ev: ev });
   });
 
@@ -3504,23 +3512,18 @@ function renderHomeMonthEvents() {
     nounouGrouped.push({ label:label, start:ev.start, end:ev.start, ev:ev });
   });
   nounouGrouped.forEach(function(p) {
-    var s = parseKey(p.start), e = parseKey(p.end);
     var isNow = p.start <= todayKey && p.end >= todayKey;
-    var dateStr = isNow ? 'En ce moment' :
-      s.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) +
-      (p.start!==p.end ? ' → '+e.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) : '');
+    var dateStr = isNow ? 'En ce moment' : relativeDate(p.start);
     chips.push({ icon:'🍼', label:'Congé nounou', sublabel: p.label, date:dateStr, color:'var(--nounou)', dim:'var(--nounou-dim)', now:isNow, sort:p.start, type:'nounou', ev:p.ev });
   });
 
-  // Mémos à venir (30 jours)
+  // Mémos à venir
   (state.memos || []).forEach(function(ev) {
     if (ev.start < todayKey) return;
-    var s = parseKey(ev.start);
-    if (s > horizon) return;
-    var dateStr2 = s.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
-    if (ev.time) dateStr2 += ' · ' + ev.time;
     var isNowMemo = ev.start === todayKey;
-    chips.push({ icon:'📌', label:ev.name, date: isNowMemo ? 'Aujourd\'hui' + (ev.time ? ' · ' + ev.time : '') : dateStr2, color:'var(--memo)', dim:'var(--memo-dim)', now: isNowMemo, sort:ev.start, type:'memo', ev:ev });
+    var dateStr2 = isNowMemo ? 'Aujourd\'hui' : relativeDate(ev.start);
+    if (ev.time) dateStr2 += ' · ' + ev.time;
+    chips.push({ icon:'📌', label:ev.name, date: dateStr2, color:'var(--memo)', dim:'var(--memo-dim)', now: isNowMemo, sort:ev.start, type:'memo', ev:ev });
   });
 
   if (chips.length === 0) return;
