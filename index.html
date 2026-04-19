@@ -748,25 +748,64 @@
   .sp-type-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
   .sp-type-item {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 14px; border-radius: 10px;
-    border: 1px solid var(--border); background: var(--surface2);
+    gap: 10px;
+    padding: 12px 14px 12px 0; border-radius: 10px;
+    border: 1px solid var(--border); background: #fff;
     cursor: pointer; transition: all 0.15s;
+    overflow: hidden; position: relative;
   }
-  .sp-type-item:hover { border-color: var(--sp); background: var(--sp-dim); }
-  .sp-type-item.selected { border-color: var(--sp); background: var(--sp-dim); }
+  .sp-type-item::before {
+    content: '';
+    width: 4px;
+    align-self: stretch;
+    flex-shrink: 0;
+    background: transparent;
+    border-radius: 2px 0 0 2px;
+    transition: background 0.15s;
+  }
+  .sp-type-item:hover { border-color: var(--muted); }
+  .sp-type-item.selected { border-color: var(--sp); background: #fff; }
+  .sp-type-item.selected::before { background: var(--sp); }
   @media (hover: none) {
-    .sp-type-item:hover { border-color: var(--border); background: var(--surface2); }
+    .sp-type-item:hover { border-color: var(--border); background: #fff; }
   }
-  #garde-lieu-list .sp-type-item.selected { border-color: var(--gardes); background: var(--gardes-dim); }
-  #garde-lieu-list .sp-type-item:hover { border-color: var(--border); background: var(--surface2); }
-  .sp-type-name { font-size: 0.88rem; font-weight: 600; }
+  #garde-lieu-list .sp-type-item.selected { border-color: var(--gardes); background: #fff; }
+  #garde-lieu-list .sp-type-item.selected::before { background: var(--gardes); }
+  #garde-lieu-list .sp-type-item:hover { border-color: var(--muted); background: #fff; }
+  #bel-type-list .sp-type-item.selected { border-color: var(--bel); }
+  #bel-type-list .sp-type-item.selected::before { background: var(--bel); }
+  #bel-type-list .sp-type-item.selected[data-beltype="garde"] { border-color: var(--gardes); }
+  #bel-type-list .sp-type-item.selected[data-beltype="garde"]::before { background: var(--gardes); }
+  #bel-type-list .sp-type-item.selected .sp-type-check { color: var(--bel); }
+  #bel-type-list .sp-type-item.selected[data-beltype="garde"] .sp-type-check { color: var(--gardes); }
+  #nounou-gardien-list .sp-type-item.selected,
+  #as-nounou-gardien .sp-type-item.selected,
+  #nounou-form-gardien-list .sp-type-item.selected { border-color: var(--nounou); }
+  #nounou-gardien-list .sp-type-item.selected::before,
+  #as-nounou-gardien .sp-type-item.selected::before,
+  #nounou-form-gardien-list .sp-type-item.selected::before { background: var(--nounou); }
+  #nounou-gardien-list .sp-type-item.selected .sp-type-check,
+  #as-nounou-gardien .sp-type-item.selected .sp-type-check,
+  #nounou-form-gardien-list .sp-type-item.selected .sp-type-check { color: var(--nounou); }
+  .sp-type-name { font-size: 0.9rem; font-weight: 500; color: var(--text); padding-left: 10px; flex: 1; }
+  .sp-type-item.selected .sp-type-name { font-weight: 600; }
   .sp-type-hours {
-    font-size: 0.78rem; font-weight: 700;
-    padding: 3px 9px; border-radius: 20px;
-    background: var(--sp-dim); color: var(--sp);
+    font-size: 0.88rem; font-weight: 700;
+    color: var(--text);
+    flex-shrink: 0;
+    margin-right: 4px;
   }
+  .sp-type-check {
+    width: 18px; height: 18px;
+    display: none;
+    flex-shrink: 0;
+    margin-right: 10px;
+    color: var(--sp);
+  }
+  .sp-type-item.selected .sp-type-check { display: block; }
+  #garde-lieu-list .sp-type-item.selected .sp-type-check { color: var(--gardes); }
   .sp-type-remove-btn {
-    width: 100%; padding: 10px; border-radius: 8px;
+    padding: 10px 16px; border-radius: 8px;
     border: 1px solid rgba(248,113,113,0.3); background: rgba(248,113,113,0.08);
     color: #f87171; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600;
     cursor: pointer; transition: all 0.2s;
@@ -1474,14 +1513,12 @@
     </div>
     <div class="sp-type-list" id="garde-lieu-list" style="margin-bottom:12px">
       <div class="sp-type-item" data-lieu="bel" style="cursor:pointer">
-        <div class="sp-type-name" style="display:flex;align-items:center;gap:8px">
-          <span style="width:10px;height:10px;border-radius:50%;background:var(--bel);display:inline-block"></span>Belharra
-        </div>
+        <div class="sp-type-name">Belharra</div>
+        <svg class="sp-type-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <div class="sp-type-item" data-lieu="sp" style="cursor:pointer">
-        <div class="sp-type-name" style="display:flex;align-items:center;gap:8px">
-          <span style="width:10px;height:10px;border-radius:50%;background:#ff8c00;display:inline-block"></span>St Palais
-        </div>
+        <div class="sp-type-name">St Palais</div>
+        <svg class="sp-type-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between">
@@ -1809,15 +1846,12 @@
     <p id="bel-type-label" style="color:var(--muted);font-size:0.82rem;margin-bottom:14px;display:none">Quel type de journée ?</p>
     <div class="sp-type-list" id="bel-type-list" style="margin-bottom:12px;display:none">
       <div class="sp-type-item selected" data-beltype="normal" style="cursor:pointer">
-        <div class="sp-type-name" style="display:flex;align-items:center;gap:8px">
-          <span style="width:10px;height:10px;border-radius:50%;background:var(--bel);display:inline-block"></span>Journée Belharra
-        </div>
+        <div class="sp-type-name">Journée Belharra</div>
+        <svg class="sp-type-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <div class="sp-type-item" data-beltype="garde" style="cursor:pointer">
-        <div class="sp-type-name" style="display:flex;align-items:center;gap:8px">
-          <span style="width:10px;height:10px;border-radius:50%;background:var(--gardes);display:inline-block"></span>Garde Belharra
-        </div>
-        <div class="sp-type-hours" style="background:var(--gardes-dim);color:var(--gardes)">Garde</div>
+        <div class="sp-type-name">Garde Belharra</div>
+        <svg class="sp-type-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
     </div>
     <div id="bel-type-conflict-wrap" style="display:none;margin-bottom:10px;padding:10px;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);border-radius:10px">
@@ -2607,7 +2641,7 @@ function selectAddSheetType(typeId) {
       var item = document.createElement('div');
       item.className = 'sp-type-item' + (st.id === 'j' ? ' selected' : '');
       item.dataset.sptype = st.id;
-      item.innerHTML = '<div class="sp-type-name" style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:' + st.color + ';display:inline-block"></span>' + st.label + '</div><div class="sp-type-hours">' + st.hours + 'h</div>';
+      item.innerHTML = '<div class="sp-type-name">' + st.label + '</div><div class="sp-type-hours">' + st.hours + 'h</div><svg class="sp-type-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
       spList.appendChild(item);
     });
     var spTouchStartY = 0, spLastTouch = 0;
@@ -2648,7 +2682,7 @@ function selectAddSheetType(typeId) {
       var item = document.createElement('div');
       item.className = 'sp-type-item' + (!firstG ? ' selected' : '');
       item.dataset.gardien = g.id;
-      item.innerHTML = '<div class="sp-type-name" style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:var(--nounou);display:inline-block"></span>' + g.label + '</div>' + (g.blockssp ? '<div class="sp-type-hours" style="background:var(--nounou-dim);color:var(--nounou)">Bloque SP</div>' : '');
+      item.innerHTML = '<div class="sp-type-name">' + g.label + '</div>' + (g.blockssp ? '<div class="sp-type-hours" style="color:var(--nounou)">Bloque SP</div>' : '') + '<svg class="sp-type-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
       gnList.appendChild(item);
       if (!firstG) firstG = g.id;
     });
@@ -4597,8 +4631,9 @@ function openSpTypeModal(key) {
     item.className = 'sp-type-item' + (currentType === t.id ? ' selected' : '');
     item.dataset.sptype = t.id;
     item.innerHTML =
-      '<div class="sp-type-name" style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:' + t.color + ';flex-shrink:0;display:inline-block"></span>' + t.label + '</div>' +
-      '<div class="sp-type-hours">' + t.hours + 'h</div>';
+      '<div class="sp-type-name">' + t.label + '</div>' +
+      '<div class="sp-type-hours">' + t.hours + 'h</div>' +
+      '<svg class="sp-type-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
     list.appendChild(item);
   });
 
@@ -7074,10 +7109,9 @@ function initNounouFormGardienList() {
     var item = document.createElement('div');
     item.className = 'sp-type-item';
     item.dataset.gardien = g.id;
-    item.innerHTML = '<div class="sp-type-name" style="display:flex;align-items:center;gap:8px">' +
-      '<span style="width:10px;height:10px;border-radius:50%;background:var(--nounou);flex-shrink:0;display:inline-block"></span>' +
-      g.label + '</div>' +
-      (g.blockssp ? '<div class="sp-type-hours" style="background:var(--nounou-dim);color:var(--nounou)">Bloque dispo SP</div>' : '');
+    item.innerHTML = '<div class="sp-type-name">' + g.label + '</div>' +
+      (g.blockssp ? '<div class="sp-type-hours" style="color:var(--nounou)">Bloque dispo SP</div>' : '') +
+      '<svg class="sp-type-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
     list.appendChild(item);
   });
   list.onclick = function(e) {
@@ -8253,7 +8287,7 @@ function openFormModal(type) {
       var item = document.createElement('div');
       item.className = 'sp-type-item' + (g.id === 'attribuer' ? ' selected' : '');
       item.dataset.fmGardien = g.id;
-      item.innerHTML = '<div class="sp-type-name" style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:var(--nounou);display:inline-block"></span>' + g.label + '</div>' + (g.blockssp ? '<div class="sp-type-hours" style="background:var(--nounou-dim);color:var(--nounou)">Bloque SP</div>' : '');
+      item.innerHTML = '<div class="sp-type-name">' + g.label + '</div>' + (g.blockssp ? '<div class="sp-type-hours" style="color:var(--nounou)">Bloque SP</div>' : '') + '<svg class="sp-type-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
       gl.appendChild(item);
     });
     var nomWrap = document.createElement('div');
