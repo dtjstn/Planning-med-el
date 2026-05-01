@@ -6074,13 +6074,9 @@ function renderGlobalEventsList(y, m) {
     }
   });
 
-  // Vacances
-  (state.vac && state.vac.events || []).forEach(function(ev) {
-    if (parseKey(ev.start) <= lastDay && parseKey(ev.end) >= firstDay) {
-      var isNow = ev.start <= todayKey && ev.end >= todayKey;
-      items.push({ sort: ev.start, isNow: isNow, type: 'vac', ev: ev });
-    }
-  });
+  // Vacances : nom déjà visible directement dans les cellules du calendrier global,
+  // donc on les exclut de la liste pour éviter le doublon.
+  // (state.vac && state.vac.events || []).forEach(...);
 
   if (items.length === 0) return;
 
